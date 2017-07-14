@@ -1,3 +1,4 @@
+/* Global */
 body {
   background: black;
   color: white;
@@ -19,88 +20,13 @@ div {
   overflow-x: hidden;
 }
 
-.chat-container {
-  flex: 0 0 60%;
-  word-wrap: break-word;
-  overflow-x: hidden;
-  overflow-y: scroll;
-  padding: 6px;
-  margin-bottom: 50px;
-}
-
-.info-container {
-  flex: 0 0 40%;
-  border-left: solid 1px white;
-  padding: 12px;
-  overflow-x: hidden;
-  overflow-y: scroll;
-  margin-bottom: 50px;
-  position: relative;
-  justify-content: space-around;
-  display: flex;
-  flex-direction: column;
-}
-
-.message-input {
-  background: none;
-  border: none;
-  color: white;
-  width: 90%;
-}
-
-.message {
-  font-size: small;
-}
-
-input,
-textarea,
-select {
+input, textarea, select {
   font-family: inherit;
   font-size: small;
 }
 
-textarea:focus,
-input:focus {
+textarea:focus, input:focus {
   outline: none;
-}
-
-.bottom-bar {
-  border-top: solid 1px white;
-  background: black;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  padding: 12px;
-  width: 100%;
-  height: 50px;
-}
-
-.keys {
-  font-size: xx-small;
-  overflow: scroll;
-  max-width: 100%;
-}
-
-#roomInput {
-  max-width: 50%;
-}
-
-.disclaimer {
-  font-size: x-small;
-}
-
-.notification-list {
-  display: flex;
-  flex-direction: column;
-  overflow: scroll;
-}
-
-.notification {
-  font-size: x-small;
-}
-
-.key {
-  overflow: scroll;
 }
 
 .full-width {
@@ -119,11 +45,88 @@ input:focus {
   flex: 100 0;
 }
 
+/** Chat Window **/
+.chat-container {
+  flex: 0 0 60%;
+  word-wrap: break-word;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  padding: 6px;
+  margin-bottom: 50px;
+}
+
+.message {
+  font-size: small;
+}
+
+.disclaimer {
+  font-size: x-small;
+}
+
 .blog-plug {
   font-size: x-small;
   color: yellow;
 }
 
+
+/* Info Panel */
+.info-container {
+  flex: 0 0 40%;
+  border-left: solid 1px white;
+  padding: 12px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  margin-bottom: 50px;
+  position: relative;
+  justify-content: space-around;
+  display: flex;
+  flex-direction: column;
+}
+
+.keys {
+  font-size: xx-small;
+  overflow: scroll;
+  max-width: 100%;
+}
+
+#roomInput {
+  max-width: 50%;
+}
+
+.notification-list {
+  display: flex;
+  flex-direction: column;
+  overflow: scroll;
+}
+
+.notification {
+  font-size: x-small;
+}
+
+.key {
+  overflow: scroll;
+}
+
 .key-label {
   font-size: small;
+}
+
+/* Message Input Bar */
+.message-input {
+  background: none;
+  border: none;
+  color: white;
+  width: 90%;
+}
+
+
+.bottom-bar {
+  border-top: solid 1px white;
+  background: black;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  padding: 12px;
+  width: 100%;
+  height: 50px;
 }
