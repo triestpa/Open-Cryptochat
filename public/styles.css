@@ -1,0 +1,129 @@
+body {
+  background: black;
+  color: white;
+  font-family: 'Roboto Mono', monospace;
+  height: 100vh;
+  display: flex;
+  padding: 0;
+  margin: 0;
+}
+
+div {
+  box-sizing: border-box;
+}
+
+#vue-instance {
+  display: flex;
+  flex-direction: row;
+  flex: 1 0 100%;
+  overflow-x: hidden;
+}
+
+.chat-container {
+  flex: 0 0 60%;
+  word-wrap: break-word;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  padding: 6px;
+  margin-bottom: 50px;
+}
+
+.info-container {
+  flex: 0 0 40%;
+  border-left: solid 1px white;
+  padding: 12px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  margin-bottom: 50px;
+  position: relative;
+  justify-content: space-around;
+  display: flex;
+  flex-direction: column;
+}
+
+.message-input {
+  background: none;
+  border: none;
+  color: white;
+  width: 90%;
+}
+
+.message {
+  font-size: small;
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: small;
+}
+
+textarea:focus,
+input:focus {
+  outline: none;
+}
+
+.bottom-bar {
+  border-top: solid 1px white;
+  background: black;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  padding: 12px;
+  width: 100%;
+  height: 50px;
+}
+
+.keys {
+  font-size: xx-small;
+  overflow: scroll;
+  max-width: 100%;
+}
+
+#roomInput {
+  max-width: 50%;
+}
+
+.disclaimer {
+  font-size: x-small;
+}
+
+.notification-list {
+  display: flex;
+  flex-direction: column;
+  overflow: scroll;
+}
+
+.notification {
+  font-size: x-small;
+}
+
+.key {
+  overflow: scroll;
+}
+
+.full-width {
+  max-width: 100%;
+}
+
+.self-key {
+  color: green;
+}
+
+.other-key {
+  color: red;
+}
+
+.flex-fill {
+  flex: 100 0;
+}
+
+.blog-plug {
+  font-size: x-small;
+  color: yellow;
+}
+
+.key-label {
+  font-size: small;
+}

@@ -5,30 +5,56 @@
     <title>Encrypted Chat</title>
     <meta name="description" content="Vue.js - Intuitive, Fast and Composable MVVM for building interactive interfaces.">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Mono" rel="stylesheet">
+    <link href="/styles.css" rel="stylesheet">
   </head>
   <body>
     <div id="vue-instance">
-      <div class="chat-container u-full-width">
-        <div>
-          <label for="roomInput">Room</label>
-          <input class="u-full-width" type="text" placeholder="Room Name" id="roomInput" v-model="room">
-        </div>
-        <input type="submit" v-on:click="joinRoom()" value="Join">
-        <div class="u-full-width">
-          <input class="u-full-width" type="text" placeholder="Message" v-model="draft">
-        </div>
-        <input type="submit" v-on:click="sendMessage()" value="Send">
+      <div class="chat-container full-width">
+        <p class="disclaimer">Disclaimer - This site is meant for demonstrative purposes only, as a tutorial on end-to-end web application encryption.  The source code was developed with a heavy emphasis on simplicity over security, and as such, this app is not suitable for the sharing of sensitive information.</p>
+        <p class="blog-plug">To learn how to build your own encrypted chat app, check out the <a class="blog-plug" target="_blank" rel="noopener" href="https://blog.patricktriest.com">tutorial</a>.</p>
         <div class="message-list">
-          <div class="message u-full-width" v-for="message in messages">
-            <p>{{ message }}</p>
+          <div class="message full-width" v-for="message in messages">
+            <p>
+              <span v-if="message.sender == originPublicKey" class="self-key">{{ getKeySnippet(message.sender) }}</span>
+              <span v-else class="other-key">{{ getKeySnippet(message.sender) }}</span>
+              > {{ message.text }}
+            </p>
           </div>
         </div>
       </div>
+
+      <div class="info-container full-width">
+          <h6>Join Chatroom</h6>
+          <input type="text" placeholder="Room Name" id="roomInput" v-model="pendingRoom" @keyup.enter="joinRoom()">
+          <input type="submit" v-on:click="joinRoom()" value="Join">
+          <h6>Notification Log</h6>
+          <div class="notification-list">
+            <div class="notification full-width" v-for="notification in notifications">
+              {{ notification }}
+            </div>
+          </div>
+          <div class="flex-fill"></div>
+          <div class="keys">
+            <div class="key other-key" v-if="destinationPublicKey">
+              <p class="key-label">Their Public Key - {{ getKeySnippet(destinationPublicKey) }}</p>
+              <p>{{ destinationPublicKey }}</p>
+            </div>
+            <div class="key self-key" v-if="originPublicKey">
+              <p class="key-label">Your Public Key - {{ getKeySnippet(originPublicKey) }}</p>
+              <p>{{ originPublicKey }}</p>
+            </div>
+          </div>
+      </div>
+      <div class="bottom-bar">
+        <div class="full-width">
+          > <input class="message-input" type="text" placeholder="Message" v-model="draft" @keyup.enter="sendMessage()">
+        </div>
+      </div>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/2.3.1/jsencrypt.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.1/socket.io.slim.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.3/vue.min.js"></script>
+    <script src="https://cdn.patricktriest.com/vendor/vue/vue.min.js"></script>
+    <script src="https://cdn.patricktriest.com/vendor/socketio/socket.io.slim.js"></script>
+    <script src="https://cdn.patricktriest.com/vendor/immutable/immutable.min.js"></script>
     <script src="/page.js"></script>
   </body>
 </html>
