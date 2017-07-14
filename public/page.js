@@ -3,40 +3,24 @@ const vm = new Vue ({
   el: '#vue-instance',
   data () {
     return {
-      cryptWorker: null,
+      cryptWorker: new Worker("crypto-worker.js"),
       socket: null,
       originPublicKey: null,
       destinationPublicKey: null,
       messages: null,
       notifications: [],
-      pendingRoom: null,
       currentRoom: null,
+      pendingRoom: Math.floor(Math.random() * 1000),
       draft: ''
     }
   },
-  computed: {
-    originKeyShort: function () {
-      if (this.originPublicKey) {
-        return this.originPublicKey.slice(400, 416)
-      }
-    },
-    destinationKeyShort: function () {
-      if (this.destinationPublicKey) {
-        return this.destinationPublicKey.slice(400, 416)
-      }
-    }
-  },
   async created () {
-    // Generate a random default room number
-    this.pendingRoom = Math.floor(Math.random() * 1000)
-
     // Initialize crypto webworker thread
-    this.cryptWorker = new Worker("crypto-worker.js")
-
+    cryptWorker = new Worker("crypto-worker.js")
     this.addNotification('Welcome! Generating a new keypair now.')
 
     // Generate keypair and join default room
-    this.originPublicKey = await this.generateKeypair()
+    this.originPublicKey = await this.getWebWorkerResponse('generate-keys')
     this.addNotification('Keypair Generated')
 
     // Initialize socketio
@@ -53,7 +37,14 @@ const vm = new Vue ({
       })
 
       // Decrypt and display message when recieved
-      this.socket.on('message', this.recieveMessage)
+      this.socket.on('message', async (message) => {
+        // Only decrypt messages encrypted with the user's publickey
+        if (message.recipient === this.originPublicKey) {
+          // Decrypt the message text in the webworker thread
+          message.text = await this.getWebWorkerResponse('decrypt', message.text)
+          this.messages.push(message)
+        }
+      })
 
       // When a user joins the current room, send them your public key
       this.socket.on('new connection', () => {
@@ -62,43 +53,46 @@ const vm = new Vue ({
       })
 
       // Save publickey when recieved
-      this.socket.on('publickey', this.recievePublicKey)
+      this.socket.on('publickey', (key) => {
+        this.addNotification(`Public Key Received - ${this.getKeySnippet(key)}`)
+        this.destinationPublicKey = key
+      })
 
       // Notify user that the room they are attempting to join is full
       this.socket.on('room is full', () => {
-        this.addNotification(`Cannot join ${ this.pendingRoom },room is full`)
+        this.addNotification(`Cannot join ${ this.pendingRoom }, room is full`)
 
-        // Join a random room instead
+        // Join a random room as a fallback
         this.pendingRoom = Math.floor(Math.random() * 1000)
         this.joinRoom()
       })
 
       // Notify user that someone attempted to join the room
-      this.socket.on('intrusion attempt', () => this.addNotification('A third user attempted to join the room.'))
+      this.socket.on('intrusion attempt', () => {
+        this.addNotification('A third user attempted to join the room.')
+      })
 
       // Notify user that the other user has left the room
-      this.socket.on('user disconnected', this.destinationUserDisconnected)
+      this.socket.on('user disconnected', () => {
+        this.addNotification(`User Disconnected - ${ this.destinationKeyShort }`, )
+        this.destinationPublicKey = null
+      })
 
       // Notify user that they have lost the socket connection
       this.socket.on('disconnect', () => this.addNotification('Lost Connection'))
-    },
-
-    addNotification (notification) {
-      this.notifications.push(notification)
-    },
-
-    /** Notify user that the other user has left the room  */
-    destinationUserDisconnected () {
-      this.addNotification(`User Disconnected - ${ this.destinationKeyShort }`, )
-      this.destinationPublicKey = null
     },
 
     /** Join the specified chatroom */
     async joinRoom () {
       if (this.pendingRoom !== this.currentRoom) {
         this.addNotification(`Connecting to Room - ${this.pendingRoom}`)
+
+        // Reset room state variables
         this.messages = []
         this.destinationPublicKey = null
+
+        // Attempt to join room.
+        // The 'room is full' socket event will be triggered if join is unsuccessful.
         this.socket.emit('join', this.pendingRoom)
         this.currentRoom = this.pendingRoom
         this.sendPublicKey()
@@ -107,40 +101,32 @@ const vm = new Vue ({
 
     /** Encrypt and emit the current draft message */
     async sendMessage () {
-      // Don't send message if there is missing information
-      if (!this.draft || this.draft === '') {
-        return
-      }
+      // Don't send message if there is nothing to send
+      if (!this.draft || this.draft === '') { return }
 
       // Use immutable.js to avoid unintended side-effects
+      // Admittedly, it's a bit silly for us to be including the entire library to only use it once.
+      // But it's still a useful paradigm to be familiar with for larger projects.
       message = Immutable.Map({
         text: this.draft,
         recipient: this.destinationPublicKey,
         sender: this.originPublicKey
       })
 
-      // Reset draft text
+      // Reset the UI input draft text
       this.draft = ''
 
       // Instantly add message to local UI
       this.messages.push(message.toObject())
 
       if (this.destinationPublicKey) {
-        // Encrypt Message
-        const encryptedText = await this.encrypt(message.get('text'))
+        // Encrypt message with the public key of the other user
+        const encryptedText = await this.getWebWorkerResponse(
+          'encrypt', [ message.get('text'), this.destinationPublicKey ])
         const encryptedMsg = message.set('text', encryptedText)
 
         // Emit the encrypted message
         this.socket.emit('message', encryptedMsg.toObject())
-      }
-    },
-
-    /** Decrypt and display a new message */
-    async recieveMessage (message) {
-      // As a failsafe, only decrypt messages encrypted with the user's publickey
-      if (message.recipient === this.originPublicKey) {
-        message.text = await this.decrypt(message.text)
-        this.messages.push(message)
       }
     },
 
@@ -151,62 +137,35 @@ const vm = new Vue ({
       }
     },
 
-    /** Save/overwrite the recieved publickey */
-    recievePublicKey (key) {
-      this.currentRoom = this.pendingRoom
-      this.destinationPublicKey = key
-      this.addNotification(`Public Key Received - ${this.destinationKeyShort}`)
-    },
-
     /** Get shortened key for display purposes  */
     getKeySnippet (key) {
       return key.slice(400, 416)
     },
 
-    /** Generate a public/private keypair on the webworker thread  */
-    generateKeypair () {
-      return new Promise((resolve, reject) => {
-        this.cryptWorker.postMessage(['generate-keys'])
-
-        let handler = (e) => {
-          if (e.data[0] === 'generate-keys') {
-            e.currentTarget.removeEventListener(e.type, handler);
-            resolve(e.data[1])
-          }
-        }
-
-        this.cryptWorker.addEventListener('message', handler)
-      })
+    /** Append a notification message in the UI */
+    addNotification (notification) {
+      this.notifications.push(notification)
     },
 
-    /** Encrypt the provided string with the destination public key */
-    encrypt (content) {
+    /** Post a message to the webworker, and return a promise that will resolve with the response.  */
+    getWebWorkerResponse(messageType, messagePayload) {
       return new Promise((resolve, reject) => {
-        this.cryptWorker.postMessage(['encrypt', content, this.destinationPublicKey])
+        // Post the message to the webworker
+        this.cryptWorker.postMessage([messageType].concat(messagePayload))
 
-        let handler = (e) => {
-          if (e.data[0] === 'encrypt') {
-            e.currentTarget.removeEventListener(e.type, handler);
+        // Create a handler for the webworker message event
+        const handler = function (e) {
+          // Only react to messages of the given message type
+          if (e.data[0] === messageType) {
+            // Remove the event listener once the listener has been called.
+            e.currentTarget.removeEventListener(e.type, handler)
+
+            // Resolve the promise with the message payload.
             resolve(e.data[1])
           }
         }
 
-        this.cryptWorker.addEventListener('message', handler)
-      })
-    },
-
-    /** Decrypt the provided string with the local private key */
-    decrypt (content) {
-      return new Promise((resolve, reject) => {
-        this.cryptWorker.postMessage(['decrypt', content])
-
-        let handler = (e) => {
-          if (e.data[0] === 'decrypt') {
-            e.currentTarget.removeEventListener(e.type, handler);
-            resolve(e.data[1])
-          }
-        }
-
+        // Assign the handler to the webworker 'message' event.
         this.cryptWorker.addEventListener('message', handler)
       })
     }
