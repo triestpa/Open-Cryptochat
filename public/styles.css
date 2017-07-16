@@ -13,13 +13,6 @@ div {
   box-sizing: border-box;
 }
 
-#vue-instance {
-  display: flex;
-  flex-direction: row;
-  flex: 1 0 100%;
-  overflow-x: hidden;
-}
-
 input, textarea, select {
   font-family: inherit;
   font-size: small;
@@ -30,19 +23,57 @@ textarea:focus, input:focus {
 }
 
 .full-width {
-  max-width: 100%;
+  width: 100%;
 }
 
-.self-key {
+.green {
   color: green;
 }
 
-.other-key {
+.red {
   color: red;
+}
+
+.yellow {
+  color: yellow;
+}
+
+.yellow-button {
+  background: none;
+  border: 1px solid yellow;
+  color: yellow;
+  cursor: pointer;
+}
+
+.yellow-button:hover {
+  background: yellow;
+  color: black;
 }
 
 .flex-fill {
   flex: 100 0;
+}
+
+h1 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: medium;
+}
+
+h2 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: small;
+  font-weight: 300;
+}
+
+p {
+  font-size: x-small;
+}
+
+#vue-instance {
+  display: flex;
+  flex-direction: row;
+  flex: 1 0 100%;
+  overflow-x: hidden;
 }
 
 /** Chat Window **/
@@ -55,19 +86,13 @@ textarea:focus, input:focus {
   margin-bottom: 50px;
 }
 
-.message {
+.message > p {
   font-size: small;
 }
 
-.disclaimer {
-  font-size: x-small;
-}
-
 .blog-plug {
-  font-size: x-small;
   color: yellow;
 }
-
 
 /* Info Panel */
 .info-container {
@@ -83,32 +108,49 @@ textarea:focus, input:focus {
   flex-direction: column;
 }
 
-.keys {
-  font-size: xx-small;
-  overflow: scroll;
-  max-width: 100%;
-}
-
-#roomInput {
-  max-width: 50%;
+.divider {
+  height: 1px;
+  min-width: 100%;
+  background: white;
+  margin: 12px -12px;
 }
 
 .notification-list {
   display: flex;
   flex-direction: column;
   overflow: scroll;
+  padding-bottom: 24px;
 }
 
 .notification {
   font-size: x-small;
 }
 
+.keys {
+  font-size: xx-small;
+  overflow: scroll;
+}
+
+.keys > h1 {
+  font-size: small;
+}
+
 .key {
   overflow: scroll;
 }
 
-.key-label {
-  font-size: small;
+.room-select {
+  display: flex;
+}
+
+#room-input {
+    flex: 1 0 60%;
+    background: none;
+    border: none;
+    border-bottom: 1px solid white;
+    border-top: 1px solid white;
+    border-left: 1px solid white;
+    color: white;
 }
 
 /* Message Input Bar */
@@ -119,7 +161,6 @@ textarea:focus, input:focus {
   width: 90%;
 }
 
-
 .bottom-bar {
   border-top: solid 1px white;
   background: black;
@@ -127,6 +168,5 @@ textarea:focus, input:focus {
   bottom: 0;
   left: 0;
   padding: 12px;
-  width: 100%;
   height: 50px;
 }
