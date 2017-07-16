@@ -1,15 +1,18 @@
 {
   "name": "chat-encryption-example",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "license": "MIT",
+  "author": "Patrick Triest",
+  "description": "End-to-end RSA-256 encrypted chat application.",
+  "main": "app.js",
+  "engines": {
+    "node": ">=7.6"
+  },
   "scripts": {
     "start": "node app.js"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "express": "4.15.3",
-    "socket.io": "2.0.1"
+    "socket.io": "2.0.3"
   }
 }
