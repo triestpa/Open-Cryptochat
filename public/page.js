@@ -3,7 +3,7 @@ const vm = new Vue ({
   el: '#vue-instance',
   data () {
     return {
-      cryptWorker: new Worker("crypto-worker.js"),
+      cryptWorker: null,
       socket: null,
       originPublicKey: null,
       destinationPublicKey: null,
@@ -15,13 +15,14 @@ const vm = new Vue ({
     }
   },
   async created () {
+    this.notify('Welcome! Generating a new keypair now.')
+
     // Initialize crypto webworker thread
-    cryptWorker = new Worker("crypto-worker.js")
-    this.addNotification('Welcome! Generating a new keypair now.')
+    this.cryptWorker = new Worker("crypto-worker.js")
 
     // Generate keypair and join default room
     this.originPublicKey = await this.getWebWorkerResponse('generate-keys')
-    this.addNotification('Keypair Generated')
+    this.notify('Keypair Generated')
 
     // Initialize socketio
     this.socket = io()
@@ -32,7 +33,7 @@ const vm = new Vue ({
     setupSocketListeners () {
       // Automatically join default room on connect
       this.socket.on('connect', () => {
-        this.addNotification('Connected To Server.')
+        this.notify('Connected To Server.')
         this.joinRoom()
       })
 
@@ -42,25 +43,25 @@ const vm = new Vue ({
         if (message.recipient === this.originPublicKey) {
           // Decrypt the message text in the webworker thread
           message.text = await this.getWebWorkerResponse('decrypt', message.text)
-          this.messages.push(message)
+          this.addMessage(message)
         }
       })
 
       // When a user joins the current room, send them your public key
       this.socket.on('new connection', () => {
-        this.addNotification('Another user joined the room.')
+        this.notify('Another user joined the room.')
         this.sendPublicKey()
       })
 
       // Save publickey when recieved
       this.socket.on('publickey', (key) => {
-        this.addNotification(`Public Key Received - ${this.getKeySnippet(key)}`)
+        this.notify(`Public Key Received - ${this.getKeySnippet(key)}`)
         this.destinationPublicKey = key
       })
 
       // Notify user that the room they are attempting to join is full
       this.socket.on('room is full', () => {
-        this.addNotification(`Cannot join ${ this.pendingRoom }, room is full`)
+        this.notify(`Cannot join ${ this.pendingRoom }, room is full`)
 
         // Join a random room as a fallback
         this.pendingRoom = Math.floor(Math.random() * 1000)
@@ -69,23 +70,28 @@ const vm = new Vue ({
 
       // Notify user that someone attempted to join the room
       this.socket.on('intrusion attempt', () => {
-        this.addNotification('A third user attempted to join the room.')
+        this.notify('A third user attempted to join the room.')
+      })
+
+      // Notify user that they've joined a new room
+      this.socket.on('room joined', () => {
+        this.notify('Room join successful.')
       })
 
       // Notify user that the other user has left the room
       this.socket.on('user disconnected', () => {
-        this.addNotification(`User Disconnected - ${ this.destinationKeyShort }`, )
+        this.notify(`User Disconnected - ${ this.getKeySnippet(this.destinationKey) }`, )
         this.destinationPublicKey = null
       })
 
       // Notify user that they have lost the socket connection
-      this.socket.on('disconnect', () => this.addNotification('Lost Connection'))
+      this.socket.on('disconnect', () => this.notify('Lost Connection'))
     },
 
     /** Join the specified chatroom */
     async joinRoom () {
-      if (this.pendingRoom !== this.currentRoom) {
-        this.addNotification(`Connecting to Room - ${this.pendingRoom}`)
+      if (this.pendingRoom !== this.currentRoom && this.originPublicKey) {
+        this.notify(`Connecting to Room - ${this.pendingRoom}`)
 
         // Reset room state variables
         this.messages = []
@@ -99,15 +105,22 @@ const vm = new Vue ({
       }
     },
 
+     /** Emit the public key to all users in the chatroom */
+    async sendPublicKey () {
+      if (this.originPublicKey) {
+        this.socket.emit('publickey', this.originPublicKey)
+      }
+    },
+
     /** Encrypt and emit the current draft message */
     async sendMessage () {
       // Don't send message if there is nothing to send
       if (!this.draft || this.draft === '') { return }
 
-      // Use immutable.js to avoid unintended side-effects
-      // Admittedly, it's a bit silly for us to be including the entire library to only use it once.
+      // Use immutable.js to avoid unintended side-effects.
+      // Admittedly, it's a bit silly for us to be including the entire library to only use it once,
       // But it's still a useful paradigm to be familiar with for larger projects.
-      message = Immutable.Map({
+      let message = Immutable.Map({
         text: this.draft,
         recipient: this.destinationPublicKey,
         sender: this.originPublicKey
@@ -117,7 +130,7 @@ const vm = new Vue ({
       this.draft = ''
 
       // Instantly add message to local UI
-      this.messages.push(message.toObject())
+      this.addMessage(message.toObject())
 
       if (this.destinationPublicKey) {
         // Encrypt message with the public key of the other user
@@ -130,11 +143,11 @@ const vm = new Vue ({
       }
     },
 
-    /** Emit the public key to all users in the chatroom */
-    async sendPublicKey () {
-      if (this.originPublicKey) {
-        this.socket.emit('publickey', this.originPublicKey)
-      }
+    /** Add message to UI, and scroll the view to display new message  */
+    addMessage (message) {
+      this.messages.push(message)
+      const chatContainer = this.$refs.chatContainer
+      chatContainer.scrollTop = chatContainer.scrollHeight
     },
 
     /** Get shortened key for display purposes  */
@@ -143,7 +156,8 @@ const vm = new Vue ({
     },
 
     /** Append a notification message in the UI */
-    addNotification (notification) {
+    notify (notification) {
+      console.log(notification)
       this.notifications.push(notification)
     },
 

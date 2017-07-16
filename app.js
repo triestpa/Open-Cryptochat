@@ -1,11 +1,10 @@
 const express = require('express')
-const cors = require('cors')
 
 const app = express()
 const http = require('http').Server(app)
 const io = require('socket.io')(http)
 
-// Mount public webapp code
+// Serve webapp directory
 app.use(express.static('public'))
 
 /** Manage behavior of each client socket connection */
@@ -35,6 +34,11 @@ io.on('connection', (socket) => {
       // Join new room
       currentRoom = roomName
       socket.join(currentRoom)
+
+      // Notify user of room join success
+      io.to(socket.id).emit('room joined', null)
+
+      // Notify room that user has joined
       socket.broadcast.to(currentRoom).emit('new connection', null)
     }
   })
