@@ -5,19 +5,24 @@
     <title>Encrypted Chat</title>
     <meta name="description" content="Vue.js - Intuitive, Fast and Composable MVVM for building interactive interfaces.">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Roboto+Mono" rel="stylesheet">
     <link href="/styles.css" rel="stylesheet">
   </head>
   <body>
     <div id="vue-instance">
-      <div class="chat-container full-width">
-        <p class="disclaimer">Disclaimer - This site is meant for demonstrative purposes only, as a tutorial on end-to-end web application encryption.  The source code was developed with a heavy emphasis on simplicity over security, and as such, this app is not suitable for the sharing of sensitive information.</p>
-        <p class="blog-plug">To learn how to build your own encrypted chat app, check out the <a class="blog-plug" target="_blank" rel="noopener" href="https://blog.patricktriest.com">tutorial</a>.</p>
+      <div ref="chatContainer" class="chat-container full-width">
+        <div class="title-header">
+        <h1>OPEN CRYPTOCHAT</h1>
+        <h2>A minimalist, open-source, end-to-end RSA-2048 encrypted chat application.</h2>
+        <p>Disclaimer - This site is meant for demonstration purposes only, as a tutorial on end-to-end web application encryption. The source code was developed with a heavy emphasis on simplicity over security. As such, this website is intended to be used as a learning resource and not as a tool for sharing sensitive information.</p>
+        <p class="yellow">To learn how to build your own encrypted chat app, check out the <a class="blog-plug" target="_blank" rel="noopener" href="https://blog.patricktriest.com">tutorial</a>.</p>
+        </div>
         <div class="message-list">
           <div class="message full-width" v-for="message in messages">
             <p>
-              <span v-if="message.sender == originPublicKey" class="self-key">{{ getKeySnippet(message.sender) }}</span>
-              <span v-else class="other-key">{{ getKeySnippet(message.sender) }}</span>
+              <span v-if="message.sender == originPublicKey" class="green">{{ getKeySnippet(message.sender) }}</span>
+              <span v-else class="red">{{ getKeySnippet(message.sender) }}</span>
               > {{ message.text }}
             </p>
           </div>
@@ -25,28 +30,32 @@
       </div>
 
       <div class="info-container full-width">
-          <h6>Join Chatroom</h6>
-          <input type="text" placeholder="Room Name" id="roomInput" v-model="pendingRoom" @keyup.enter="joinRoom()">
-          <input type="submit" v-on:click="joinRoom()" value="Join">
-          <h6>Notification Log</h6>
+          <h1>JOIN CHATROOM</h1>
+          <div class="room-select">
+            <input type="text" class="full-width" placeholder="Room Name" id="room-input" v-model="pendingRoom" @keyup.enter="joinRoom()">
+            <input class="yellow-button full-width" type="submit" v-on:click="joinRoom()" value="Join">
+          </div>
+          <div class="divider"></div>
           <div class="notification-list">
+            <h1>NOTIFICATON LOG</h1>
             <div class="notification full-width" v-for="notification in notifications">
               {{ notification }}
             </div>
           </div>
           <div class="flex-fill"></div>
-          <div class="keys">
-            <div class="key other-key" v-if="destinationPublicKey">
-              <p class="key-label">Their Public Key - {{ getKeySnippet(destinationPublicKey) }}</p>
+          <div class="divider"></div>
+          <div class="keys full-width">
+            <div class="key red" v-if="destinationPublicKey">
+              <h1>THEIR PUBLIC KEY - {{ getKeySnippet(destinationPublicKey) }}</h1>
               <p>{{ destinationPublicKey }}</p>
             </div>
-            <div class="key self-key" v-if="originPublicKey">
-              <p class="key-label">Your Public Key - {{ getKeySnippet(originPublicKey) }}</p>
+            <div class="key green" v-if="originPublicKey">
+              <h1>YOUR PUBLIC KEY - {{ getKeySnippet(originPublicKey) }}</h1>
               <p>{{ originPublicKey }}</p>
             </div>
           </div>
       </div>
-      <div class="bottom-bar">
+      <div class="bottom-bar full-width">
         <div class="full-width">
           > <input class="message-input" type="text" placeholder="Message" v-model="draft" @keyup.enter="sendMessage()">
         </div>
