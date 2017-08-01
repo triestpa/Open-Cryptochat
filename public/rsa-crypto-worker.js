@@ -1,7 +1,7 @@
 self.window = self // This is required for the jsencrypt library to work within the webworker
 
 // Import the jsencrypt library
-self.importScripts('https://cdn.patricktriest.com/vendor/jsencrypt/jsencrypt.min.js');
+self.importScripts('https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/2.3.1/jsencrypt.min.js');
 
 let crypt = null
 let privateKey = null

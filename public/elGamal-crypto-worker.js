@@ -1,6 +1,7 @@
-self.window = self // This is required for the jsencrypt library to work within the webworker
+self.window = self // This is required for the sjcl library to work within the webworker
 
 // Import the SJCL library
+// Must use a version build with the ecc module enabled
 self.importScripts('https://cdn.patricktriest.com/vendor/sjcl/sjcl.min.js');
 
 let keypair = null
@@ -8,7 +9,7 @@ let keypair = null
 /** Webworker onmessage listener */
 onmessage = function(e) {
   // Load the parameters
-  const [ message_type, text, key, signature ] = e.data
+  const [ message_type, text, key ] = e.data
   let result
 
   // Call the requested function
@@ -21,12 +22,6 @@ onmessage = function(e) {
       break
     case 'decrypt':
       result = decrypt(text)
-      break
-    case 'sign':
-      result = sign(text)
-      break
-    case 'verify':
-      result = verifySig(text, key, signature)
       break
   }
 
@@ -51,17 +46,6 @@ function encrypt (content, publicKey) {
 /** Decrypt the provided string with the local private key */
 function decrypt (content) {
   return sjcl.decrypt(keypair.sec, content)
-}
-
-/** Sign the content with the private key */
-function sign (content) {
-  return keypair.sec.sign(sjcl.hash.sha256.hash(content))
-}
-
-/** Verify the signature with the provided publicKey */
-function verifySig (content, publicKey, signature) {
-  publicKey = unserializePublicKey(publicKey)
-  return publicKey.verify(sjcl.hash.sha256.hash(content), signature)
 }
 
 /** Convert the public key to a string */
