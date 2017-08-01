@@ -9,6 +9,10 @@ app.use(express.static('public'))
 
 /** Manage behavior of each client socket connection */
 io.on('connection', (socket) => {
+  // If you need to scale the app horizontally using multiple node instances,
+  // you'll need to store the socket state in a persisent store such as Redis.
+  // For more info, see here: https://github.com/socketio/socket.io-redis
+
   // Store the room that the socket is connected to
   let currentRoom = null
 
