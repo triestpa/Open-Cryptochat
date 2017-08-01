@@ -64,8 +64,7 @@ io.on('connection', (socket) => {
   })
 })
 
-// Start server on port 3001
-const port = 3001
+const port = process.env.PORT || 3000
 http.listen(port, () => {
   console.log(`Chat server listening on port ${port}.`)
 })
