@@ -18,7 +18,7 @@ const vm = new Vue ({
     this.notify('Welcome! Generating a new keypair now.')
 
     // Initialize crypto webworker thread
-    this.cryptWorker = new Worker("crypto-worker.js")
+    this.cryptWorker = new Worker("rsa-crypto-worker.js")
 
     // Generate keypair and join default room
     this.originPublicKey = await this.getWebWorkerResponse('generate-keys')
@@ -136,6 +136,7 @@ const vm = new Vue ({
         // Encrypt message with the public key of the other user
         const encryptedText = await this.getWebWorkerResponse(
           'encrypt', [ message.get('text'), this.destinationPublicKey ])
+
         const encryptedMsg = message.set('text', encryptedText)
 
         // Emit the encrypted message
@@ -146,19 +147,26 @@ const vm = new Vue ({
     /** Add message to UI, and scroll the view to display new message  */
     addMessage (message) {
       this.messages.push(message)
-      const chatContainer = this.$refs.chatContainer
-      chatContainer.scrollTop = chatContainer.scrollHeight
+      this.autoscroll(this.$refs.chatContainer)
     },
 
     /** Get shortened key for display purposes  */
     getKeySnippet (key) {
-      return key.slice(400, 416)
+      return key.slice(410, 416)
     },
 
     /** Append a notification message in the UI */
     notify (notification) {
       console.log(notification)
       this.notifications.push(notification)
+      this.autoscroll(this.$refs.notificationContainer)
+    },
+
+    /** Autoscoll DOM element to bottom */
+    autoscroll (element) {
+      if (element) {
+        element.scrollTop = element.scrollHeight
+      }
     },
 
     /** Post a message to the webworker, and return a promise that will resolve with the response.  */

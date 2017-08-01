@@ -2,8 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Encrypted Chat</title>
-    <meta name="description" content="Vue.js - Intuitive, Fast and Composable MVVM for building interactive interfaces.">
+    <title>Open Cryptochat</title>
+    <meta name="description" content="A minimalist, open-source, end-to-end RSA-2048 encrypted chat application.">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Roboto+Mono" rel="stylesheet">
@@ -13,10 +13,10 @@
     <div id="vue-instance">
       <div ref="chatContainer" class="chat-container full-width">
         <div class="title-header">
-        <h1>OPEN CRYPTOCHAT</h1>
-        <h2>A minimalist, open-source, end-to-end RSA-2048 encrypted chat application.</h2>
-        <p>Disclaimer - This site is meant for demonstration purposes only, as a tutorial on end-to-end web application encryption. The source code was developed with a heavy emphasis on simplicity over security. As such, this website is intended to be used as a learning resource and not as a tool for sharing sensitive information.</p>
-        <p class="yellow">To learn how to build your own encrypted chat app, check out the <a class="blog-plug" target="_blank" rel="noopener" href="https://blog.patricktriest.com">tutorial</a>.</p>
+          <h1>OPEN CRYPTOCHAT</h1>
+          <h2>A minimalist, open-source, end-to-end encrypted chat application.</h2>
+          <p>Disclaimer - This website is part of a tutorial on end-to-end webapp encryption, and is intended to be used as a learning resource. Please do not use it to share sensitive information.</p>
+          <p class="yellow">To learn how to build your own encrypted chat app, check out the <a class="blog-plug" target="_blank" rel="noopener" href="https://blog.patricktriest.com">tutorial</a>.</p>
         </div>
         <div class="message-list">
           <div class="message full-width" v-for="message in messages">
@@ -30,28 +30,36 @@
       </div>
 
       <div class="info-container full-width">
-          <h1>JOIN CHATROOM</h1>
+          <h1>CHATROOM</h1>
           <div class="room-select">
             <input type="text" class="full-width" placeholder="Room Name" id="room-input" v-model="pendingRoom" @keyup.enter="joinRoom()">
-            <input class="yellow-button full-width" type="submit" v-on:click="joinRoom()" value="Join">
+            <input class="yellow-button full-width" type="submit" v-on:click="joinRoom()" value="JOIN">
           </div>
           <div class="divider"></div>
-          <div class="notification-list">
+          <div class="notification-list" ref="notificationContainer">
             <h1>NOTIFICATON LOG</h1>
             <div class="notification full-width" v-for="notification in notifications">
               {{ notification }}
             </div>
           </div>
-          <div class="flex-fill"></div>
           <div class="divider"></div>
           <div class="keys full-width">
+            <h1>KEYS</h1>
+            <h2>THEIR PUBLIC KEY</h2>
             <div class="key red" v-if="destinationPublicKey">
-              <h1>THEIR PUBLIC KEY - {{ getKeySnippet(destinationPublicKey) }}</h1>
+              <h3>TRUNCATED IDENTIFIER - {{ getKeySnippet(destinationPublicKey) }}</h3>
               <p>{{ destinationPublicKey }}</p>
             </div>
+            <h2 v-else>Waiting for second user to join room...</h2>
+            <div class="divider"></div>
+            <h2>YOUR PUBLIC KEY</h2>
             <div class="key green" v-if="originPublicKey">
-              <h1>YOUR PUBLIC KEY - {{ getKeySnippet(originPublicKey) }}</h1>
+              <h3>TRUNCATED IDENTIFIER - {{ getKeySnippet(originPublicKey) }}</h3>
               <p>{{ originPublicKey }}</p>
+            </div>
+            <div class="keypair-loader full-width" v-else>
+              <div class="center-x loader"></div>
+              <h2 class="center-text">Generating Keypair...</h2>
             </div>
           </div>
       </div>
@@ -61,9 +69,9 @@
         </div>
       </div>
     </div>
-    <script src="https://cdn.patricktriest.com/vendor/vue/vue.min.js"></script>
-    <script src="https://cdn.patricktriest.com/vendor/socketio/socket.io.slim.js"></script>
-    <script src="https://cdn.patricktriest.com/vendor/immutable/immutable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.4.1/vue.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.slim.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/immutable/3.8.1/immutable.min.js"></script>
     <script src="/page.js"></script>
   </body>
 </html>
