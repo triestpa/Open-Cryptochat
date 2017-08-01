@@ -18,7 +18,7 @@ const vm = new Vue ({
     this.notify('Welcome! Generating a new keypair now.')
 
     // Initialize crypto webworker thread
-    this.cryptWorker = new Worker("rsa-crypto-worker.js")
+    this.cryptWorker = new Worker("crypto/rsa-crypto-worker.js")
 
     // Generate keypair and join default room
     this.originPublicKey = await this.getWebWorkerResponse('generate-keys')
