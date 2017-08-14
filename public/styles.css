@@ -216,3 +216,7 @@ p {
   padding: 12px;
   height: 48px;
 }
+
+.message-list {
+  margin-bottom: 40px;
+}
