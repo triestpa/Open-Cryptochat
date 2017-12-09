@@ -9,64 +9,22 @@ body {
   margin: 0;
 }
 
-div {
-  box-sizing: border-box;
-}
+div { box-sizing: border-box; }
+input, textarea, select { font-family: inherit; font-size: small; }
+textarea:focus, input:focus { outline: none; }
 
-input, textarea, select {
-  font-family: inherit;
-  font-size: small;
-}
+.full-width { width: 100%; }
+.green { color: green; }
+.red { color: red; }
+.yellow { color: yellow; }
+.center-x { margin: 0 auto; }
+.center-text { width: 100%; text-align: center; }
 
-textarea:focus, input:focus {
-  outline: none;
-}
-
-.full-width {
-  width: 100%;
-}
-
-.green {
-  color: green;
-}
-
-.red {
-  color: red;
-}
-
-.yellow {
-  color: yellow;
-}
-
-.center-x {
-  margin: 0 auto;
-}
-
-.center-text {
-  width: 100%;
-  text-align: center;
-}
-
-h1 {
-  font-family: 'Montserrat', sans-serif;
-  font-size: medium;
-}
-
-h2 {
-  font-family: 'Montserrat', sans-serif;
-  font-size: small;
-  font-weight: 300;
-}
-
-h3 {
-  font-family: 'Montserrat', sans-serif;
-  font-size: x-small;
-  font-weight: 300;
-}
-
-p {
-  font-size: x-small;
-}
+h1, h2, h3 { font-family: 'Montserrat', sans-serif; }
+h1 { font-size: medium; }
+h2 { font-size: small; font-weight: 300; }
+h3 { font-size: x-small; font-weight: 300; }
+p { font-size: x-small; }
 
 .clearfix:after {
    visibility: hidden;
@@ -92,13 +50,7 @@ p {
   margin-bottom: 50px;
 }
 
-.message > p {
-  font-size: small;
-}
-
-.title-header {
-
-}
+.message > p { font-size: small; }
 
 /* Info Panel */
 .info-container {
@@ -150,9 +102,7 @@ p {
   margin: 16px auto;
 }
 
-.key {
-  overflow: scroll;
-}
+.key { overflow: scroll; }
 
 .room-select {
   display: flex;
@@ -185,13 +135,11 @@ p {
   color: #111111;
 }
 
-.yellow > a {
-  color: yellow;
-}
+.yellow > a { color: yellow; }
 
 .loader {
-    border: 4px solid black; /* Light grey */
-    border-top: 4px solid yellow; /* Blue */
+    border: 4px solid black;
+    border-top: 4px solid yellow;
     border-radius: 50%;
     width: 48px;
     height: 48px;
