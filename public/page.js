@@ -18,7 +18,7 @@ const vm = new Vue ({
     this.notify('Welcome! Generating a new keypair now.')
 
     // Initialize crypto webworker thread
-    this.cryptWorker = new Worker("crypto/rsa-crypto-worker.js")
+    this.cryptWorker = new Worker('crypto/rsa-crypto-worker.js')
 
     // Generate keypair and join default room
     this.originPublicKey = await this.getWebWorkerResponse('generate-keys')
@@ -61,7 +61,7 @@ const vm = new Vue ({
 
       // Notify user that the room they are attempting to join is full
       this.socket.on('room is full', () => {
-        this.notify(`Cannot join ${ this.pendingRoom }, room is full`)
+        this.notify(`Cannot join ${this.pendingRoom}, room is full.`)
 
         // Join a random room as a fallback
         this.pendingRoom = Math.floor(Math.random() * 1000)
@@ -75,12 +75,14 @@ const vm = new Vue ({
 
       // Notify user that they've joined a new room
       this.socket.on('room joined', () => {
-        this.notify('Room join successful.')
+        this.currentRoom = this.pendingRoom
+        this.notify(`Joined Room - ${this.currentRoom}`)
+        this.sendPublicKey()
       })
 
       // Notify user that the other user has left the room
       this.socket.on('user disconnected', () => {
-        this.notify(`User Disconnected - ${ this.getKeySnippet(this.destinationKey) }`, )
+        this.notify(`User Disconnected - ${this.getKeySnippet(this.destinationKey)}`)
         this.destinationPublicKey = null
       })
 
@@ -97,11 +99,8 @@ const vm = new Vue ({
         this.messages = []
         this.destinationPublicKey = null
 
-        // Attempt to join room.
-        // The 'room is full' socket event will be triggered if join is unsuccessful.
+        // Emit room join request.
         this.socket.emit('join', this.pendingRoom)
-        this.currentRoom = this.pendingRoom
-        this.sendPublicKey()
       }
     },
 
@@ -170,7 +169,7 @@ const vm = new Vue ({
     },
 
     /** Post a message to the webworker, and return a promise that will resolve with the response.  */
-    getWebWorkerResponse(messageType, messagePayload) {
+    getWebWorkerResponse (messageType, messagePayload) {
       return new Promise((resolve, reject) => {
         // Post the message to the webworker
         this.cryptWorker.postMessage([messageType].concat(messagePayload))

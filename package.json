@@ -1,9 +1,9 @@
 {
-  "name": "chat-encryption-example",
+  "name": "encrypted-chat-tutorial",
   "version": "1.0.0",
   "node":"8.1.4",
   "license": "MIT",
-  "author": "Patrick Triest",
+  "author": "patrick.triest@gmail.com",
   "description": "End-to-end RSA-256 encrypted chat application.",
   "main": "app.js",
   "engines": {
