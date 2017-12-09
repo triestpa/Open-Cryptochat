@@ -106,7 +106,7 @@ const vm = new Vue ({
       this.draft = ''
 
       // Instantly add (unencrypted) message to local UI
-      this.messages.push(message.toObject())
+      this.addMessage(message.toObject())
 
       if (this.destinationPublicKey) {
         // Encrypt message with the public key of the other user
@@ -140,10 +140,9 @@ const vm = new Vue ({
     },
 
     /** Append a notification message in the UI */
-    addNotification (notification) {
-      console.log(notification)
-      notification = `${new Date().toLocaleTimeString()} - ${notification}`
-      this.notifications.push(notification)
+    addNotification (message) {
+      const timestamp = new Date().toLocaleTimeString()
+      this.notifications.push({ message, timestamp })
       this.autoscroll(this.$refs.notificationContainer)
     },
 

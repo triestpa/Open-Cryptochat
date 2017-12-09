@@ -1,7 +1,14 @@
 /* Global */
+
+:root {
+  --black: #111111;
+  --light-grey: #d6d6d6;
+  --highlight: yellow;
+}
+
 body {
-  background: #111111;
-  color: #d6d6d6;
+  background: var(--black);
+  color: var(--light-grey);
   font-family: 'Roboto Mono', monospace;
   height: 100vh;
   display: flex;
@@ -51,11 +58,15 @@ p { font-size: x-small; }
 }
 
 .message > p { font-size: small; }
+.title-header, p {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 300;
+}
 
 /* Info Panel */
 .info-container {
   flex: 0 0 40%;
-  border-left: solid 1px #d6d6d6;
+  border-left: solid 1px var(--light-grey);
   padding: 12px;
   overflow-x: hidden;
   overflow-y: scroll;
@@ -70,7 +81,7 @@ p { font-size: x-small; }
   padding-top: 1px;
   max-height: 0px;
   min-width: 200%;
-  background: #d6d6d6;
+  background: var(--light-grey);
   margin: 12px -12px;
   flex: 1 0;
 }
@@ -87,6 +98,18 @@ p { font-size: x-small; }
   font-family: 'Montserrat', sans-serif;
   font-weight: 300;
   font-size: small;
+  padding: 4px 0;
+  display: inline-flex;
+}
+
+.notification-timestamp {
+  flex: 0 0 20%;
+  padding-right: 12px;
+}
+
+.notification-message { flex: 0 0 80%; }
+.notification:last-child {
+  margin-bottom: 24px;
 }
 
 .keys {
@@ -115,31 +138,31 @@ p { font-size: x-small; }
     flex: 0 0 60%;
     background: none;
     border: none;
-    border-bottom: 1px solid #d6d6d6;
-    border-top: 1px solid #d6d6d6;
-    border-left: 1px solid #d6d6d6;
-    color: #d6d6d6;
+    border-bottom: 1px solid var(--light-grey);
+    border-top: 1px solid var(--light-grey);
+    border-left: 1px solid var(--light-grey);
+    color: var(--light-grey);
     padding: 4px;
 }
 
 .yellow-button {
   flex: 0 0 30%;
   background: none;
-  border: 1px solid yellow;
-  color: yellow;
+  border: 1px solid var(--highlight);
+  color: var(--highlight);
   cursor: pointer;
 }
 
 .yellow-button:hover {
-  background: yellow;
-  color: #111111;
+  background: var(--highlight);
+  color: var(--black);
 }
 
-.yellow > a { color: yellow; }
+.yellow > a { color: var(--highlight); }
 
 .loader {
     border: 4px solid black;
-    border-top: 4px solid yellow;
+    border-top: 4px solid var(--highlight);
     border-radius: 50%;
     width: 48px;
     height: 48px;
@@ -155,13 +178,13 @@ p { font-size: x-small; }
 .message-input {
   background: none;
   border: none;
-  color: #d6d6d6;
+  color: var(--light-grey);
   width: 90%;
 }
 
 .bottom-bar {
-  border-top: solid 1px #d6d6d6;
-  background: #111111;
+  border-top: solid 1px var(--light-grey);
+  background: var(--black);
   position: fixed;
   bottom: 0;
   left: 0;

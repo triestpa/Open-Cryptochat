@@ -11,7 +11,7 @@
   </head>
   <body>
     <div id="vue-instance">
-      <div class="chat-container full-width">
+      <div class="chat-container full-width" ref="chatContainer">
         <div class="title-header">
           <h1>OPEN CRYPTOCHAT</h1>
           <h2>A minimalist, open-source, end-to-end encrypted chat application.</h2>
@@ -37,7 +37,8 @@
       <div class="notification-list" ref="notificationContainer">
         <h1>NOTIFICATION LOG</h1>
         <div class="notification full-width" v-for="notification in notifications">
-          {{ notification }}
+          <div class="notification-timestamp">{{ notification.timestamp }}</div>
+          <div class="notification-message">{{ notification.message }}</div>
         </div>
       </div>
       <div class="flex-fill"></div>
