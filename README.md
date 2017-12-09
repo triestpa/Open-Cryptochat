@@ -4,16 +4,19 @@
 
 This simple question is one of the most important topics in information security - and is the key to much of our data stays safe online.
 
+(revisit this section)
 Cryptography is an important topic right now.  Government intelligence agencies actively intercept a wide net of online communications and other data.  These disclosures might been jeopardized if not for the use of strong encryption in communications between journalists and whistle-blowers.  Policies on encryption have been a growing issue in US politics, with some figures calling for increased regulations on the types of encryption used in consumer products.
 
-An understanding of the techniques for using strong encryption in different applications is essential for modern software development.  We will not be delving much into the underlying math of encryption in-depth in this tutorial; instead, the focus will be on how to harness these techniques for your own applications.  In this tutorial, we will walk through the basics concepts and implementation of an end-to-end 2048-bit RSA encrypted messenger. We'll be using Vue.js for coordinating the frontend functionality, along with a Node.js backend using Socket.io for sending messages between users.
+An understanding of the techniques for using implementing strong encryption in different applications is essential for modern software development.  We will not be delving much into the underlying math of encryption in-depth in this tutorial; instead, the focus will be on how to harness these techniques for your own applications.
 
-A fully-functional preview of the final product is hosted here  - https://chat.patricktriest.com
-The source code is available at the open-source Github repo here - https://github.com/triestpa/Open-Cryptochat
+In this tutorial, we will walk through the basic concepts and implementation of an end-to-end 2048-bit RSA encrypted messenger. We'll be using Vue.js for coordinating the frontend functionality, along with a Node.js backend using Socket.io for sending messages between users.
 
-The concepts that we are covering in this tutorial are platform-agnostic.  We will be building traditional browser-based web app, but you can just as easily adapt this Javascript code to work within a pre-built desktop (using Electron) or mobile (React Native, Ionic, or Cordova) application binary if you are concerned about browser-based application security.[^1]
+- Preview Web App - https://chat.patricktriest.com
+- Github Repository - https://github.com/triestpa/Open-Cryptochat
 
-> Disclaimer - This is meant to be a primer in end-to-end encryption implementation, not a definitive guide to building the Fort Knox of browser chat applications. I've worked hard to provide the most accurate information possible on adding cryptography to your Javascript applications, but I cannot 100% guarantee the security of the resulting app - there's a lot that can go wrong at all stages of the process, especially at the stages not covered by this tutorial such as setting up web hosting and securing the server(s).  If you are a security expert, and you find vulnerabilities in the tutorial code, please feel free to reach out to me over email (patrick.triest@gmail.com) or in the comments section below.
+The concepts that we are covering in this tutorial are meant to be platform-agnostic.  We will be building a traditional browser-based web app, but you can adapt this Javascript code to work within a pre-built desktop (using Electron) or mobile (React Native, Ionic, or Cordova) application binary if you are concerned about browser-based application security.[^1]
+
+> Disclaimer - This is meant to be a primer in end-to-end encryption implementation, not a definitive guide to building the Fort Knox of browser chat applications. I've worked to provide useful information on adding cryptography to your Javascript applications, but I cannot 100% guarantee the security of the resulting app.  There's a lot that can go wrong at all stages of the process, especially at the stages not covered by this tutorial such as setting up web hosting and securing the server(s).  If you are a security expert, and you find vulnerabilities in the tutorial code, please feel free to reach out to me over email (patrick.triest@gmail.com) or in the comments section below.
 
 ## 1 - Project Setup
 
@@ -73,10 +76,11 @@ http.listen(port, () => {
   console.log(`Chat server listening on port ${port}.`)
 })
 ```
+<br>
 
-The is the core server logic.  Right now, all it will do is start a server, and make all of the files in the local `/public` directory accessible to web clients.
+The is the core server logic.  Right now, all it will do is start a server and make all of the files in the local `/public` directory accessible to web clients.
 
-> In production, I would strongly recommend hosting your frontend code separately from the Node.js app, using battle-hardened server software such Apache and Nginx, or hosting the website on file storage service such as AWS S3.  For this tutorial, however, using the Express static file server is the simplest way to get the app running.
+> In production, I would strongly recommend hosting your frontend code separately from the Node.js app, using battle-hardened server software such [Apache](https://httpd.apache.org/) and [Nginx](https://www.nginx.com/), or hosting the website on file storage service such as AWS S3.  For this tutorial, however, using the Express static file server is the simplest way to get the app running.
 
 ### 1.2 - Add Frontend
 
@@ -101,15 +105,16 @@ Create a new file, `/public/index.html`, and add these contents.
     <div id="vue-instance">
       <!-- Add Chat Container Here -->
       <div class="info-container full-width">
-          <!-- Add Chat Room UI Here -->
-          <div class="notification-list" ref="notificationContainer">
-            <h1>NOTIFICATION LOG</h1>
-            <div class="notification full-width" v-for="notification in notifications">
-              {{ notification }}
-            </div>
+        <!-- Add Room UI Here -->
+        <div class="notification-list" ref="notificationContainer">
+          <h1>NOTIFICATION LOG</h1>
+          <div class="notification full-width" v-for="notification in notifications">
+            <div class="notification-timestamp">{{ notification.timestamp }}</div>
+            <div class="notification-message">{{ notification.message }}</div>
           </div>
-          <div class="flex-fill"></div>
-          <!-- Add Encryption Key UI Here -->
+        </div>
+        <div class="flex-fill"></div>
+        <!-- Add Encryption Key UI Here -->
       </div>
       <!-- Add Bottom Bar Here -->
     </div>
@@ -122,7 +127,7 @@ Create a new file, `/public/index.html`, and add these contents.
 ```
 <br>
 
-This template lays out the baseline HTML structure and downloads the client-side JS dependencies.  It will also display a simple list of notifications once we add the client-side JS code.
+This template sets up the baseline HTML structure and downloads the client-side JS dependencies.  It will also display a simple list of notifications once we add the client-side JS code.
 
 ##### 1.2.1 - Create Vue.js App
 
@@ -150,11 +155,10 @@ const vm = new Vue ({
   },
   methods: {
     /** Append a notification message in the UI */
-    addNotification (notification) {
-      console.log(notification)
-      notification = `${new Date().toLocaleTimeString()} - ${notification}`
-      this.notifications.push(notification)
-    }
+    addNotification (message) {
+      const timestamp = new Date().toLocaleTimeString()
+      this.notifications.push({ message, timestamp })
+    },
   }
 })
 ```
@@ -173,9 +177,15 @@ height: 500px;
 </style>
 ```css
 /* Global */
+:root {
+  --black: #111111;
+  --light-grey: #d6d6d6;
+  --highlight: yellow;
+}
+
 body {
-  background: #111111;
-  color: #d6d6d6;
+  background: var(--black);
+  color: var(--light-grey);
   font-family: 'Roboto Mono', monospace;
   height: 100vh;
   display: flex;
@@ -225,11 +235,15 @@ p { font-size: x-small; }
 }
 
 .message > p { font-size: small; }
+.title-header > p {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 300;
+}
 
 /* Info Panel */
 .info-container {
   flex: 0 0 40%;
-  border-left: solid 1px #d6d6d6;
+  border-left: solid 1px var(--light-grey);
   padding: 12px;
   overflow-x: hidden;
   overflow-y: scroll;
@@ -244,7 +258,7 @@ p { font-size: x-small; }
   padding-top: 1px;
   max-height: 0px;
   min-width: 200%;
-  background: #d6d6d6;
+  background: var(--light-grey);
   margin: 12px -12px;
   flex: 1 0;
 }
@@ -261,6 +275,18 @@ p { font-size: x-small; }
   font-family: 'Montserrat', sans-serif;
   font-weight: 300;
   font-size: small;
+  padding: 4px 0;
+  display: inline-flex;
+}
+
+.notification-timestamp {
+  flex: 0 0 20%;
+  padding-right: 12px;
+}
+
+.notification-message { flex: 0 0 80%; }
+.notification:last-child {
+  margin-bottom: 24px;
 }
 
 .keys {
@@ -289,31 +315,31 @@ p { font-size: x-small; }
     flex: 0 0 60%;
     background: none;
     border: none;
-    border-bottom: 1px solid #d6d6d6;
-    border-top: 1px solid #d6d6d6;
-    border-left: 1px solid #d6d6d6;
-    color: #d6d6d6;
+    border-bottom: 1px solid var(--light-grey);
+    border-top: 1px solid var(--light-grey);
+    border-left: 1px solid var(--light-grey);
+    color: var(--light-grey);
     padding: 4px;
 }
 
 .yellow-button {
   flex: 0 0 30%;
   background: none;
-  border: 1px solid yellow;
-  color: yellow;
+  border: 1px solid var(--highlight);
+  color: var(--highlight);
   cursor: pointer;
 }
 
 .yellow-button:hover {
-  background: yellow;
-  color: #111111;
+  background: var(--highlight);
+  color: var(--black);
 }
 
-.yellow > a { color: yellow; }
+.yellow > a { color: var(--highlight); }
 
 .loader {
     border: 4px solid black;
-    border-top: 4px solid yellow;
+    border-top: 4px solid var(--highlight);
     border-radius: 50%;
     width: 48px;
     height: 48px;
@@ -329,13 +355,13 @@ p { font-size: x-small; }
 .message-input {
   background: none;
   border: none;
-  color: #d6d6d6;
+  color: var(--light-grey);
   width: 90%;
 }
 
 .bottom-bar {
-  border-top: solid 1px #d6d6d6;
-  background: #111111;
+  border-top: solid 1px var(--light-grey);
+  background: var(--black);
   position: fixed;
   bottom: 0;
   left: 0;
@@ -368,7 +394,7 @@ In `/app.js`, add the follow code directly below the `// INSERT SOCKET.IO CODE H
 ```javascript
 /** Manage behavior of each client socket connection */
 io.on('connection', (socket) => {
-  console.log('User Connected')
+  console.log(`User Connected - Socket ID ${socket.id}`)
 
   // Store the room that the socket is connected to
   let currentRoom = 'DEFAULT'
@@ -404,7 +430,6 @@ created () {
   // Initialize socket.io
   this.socket = io()
   this.setupSocketListeners()
-  this.joinRoom()
 },
 ```
 <br>
@@ -420,13 +445,13 @@ setupSocketListeners () {
     this.joinRoom()
   })
 
+  // Notify user that they have lost the socket connection
+  this.socket.on('disconnect', () => this.addNotification('Lost Connection'))
+
   // Display message when recieved
   this.socket.on('MESSAGE', (message) => {
     this.addMessage(message)
   })
-
-  // Notify user that they have lost the socket connection
-  this.socket.on('disconnect', () => this.addNotification('Lost Connection'))
 },
 
 /** Send the current draft message */
@@ -465,11 +490,7 @@ Finally, we'll need to provide a UI to send and display messages.
 In order to display all messages in the current chat, add the following to `/public/index.html` after the `<!-- Add Chat Container Here -->` comment.
 
 ```html
-<div class="chat-container full-width">
-  <div class="title-header">
-    <h1>OPEN CRYPTOCHAT</h1>
-    <h2>A minimalist, open-source, end-to-end encrypted chat application.</h2>
-  </div>
+<div class="chat-container full-width" ref="chatContainer">
   <div class="message-list">
     <div class="message full-width" v-for="message in messages">
       <p>
@@ -495,7 +516,7 @@ Now, restart the server and open `http://localhost:3000` in two separate tabs/wi
 ![Screenshot 2](https://cdn.patricktriest.com/blog/images/posts/e2e-chat/screenshot_2.png)
 ![Screenshot 3](https://cdn.patricktriest.com/blog/images/posts/e2e-chat/screenshot_3.png)
 
-## How Does Encryption Work?
+## Encryption 101
 
 Cool, now we have a real-time messaging application.  Before adding end-to-end encryption, it's important to have a basic understanding of how asymmetric encryption works.
 
@@ -503,13 +524,13 @@ Cool, now we have a real-time messaging application.  Before adding end-to-end e
 
 Let's say we're trading secret numbers.  We're sending the numbers through a third party, but we don't want the third party to know which number we are exchanging.
 
-In order to accomplish this, we'll have to exchange a shared secret first - let's use "5".
+In order to accomplish this, we'll have to exchange a shared secret first - let's use `5`.
 
-We'll use modular arithmetic in order to transform an input number into an output.  We can write this simple equation as `x modulo s = y`, where `x` is the exposed (encrypted) message, `s` is the shared secret key (5), and `y` is the unencrypted result.
+We'll use modular arithmetic in order to transform an input number into an output.  We can write this as simple equation, `x modulo s = y`, where `x` is the exposed (encrypted) message, `s` is the shared secret key (`5`), and `y` is the unencrypted result.
 
-If we want to exchange the number 2, we can send 12 as a message since `12 modulo 5 = 2` (5 goes into 12 twice, leaving 2 remaining).  Since we both share the secret key (5), we'll both know that 2 was the exchanged number.
+If one of us wants to exchange the number `2`, they can send `12` as a message since `12 modulo 5 = 2` (5 goes into 12 twice, leaving 2 remaining).  We both share the secret key (`5`), so we'll both know that `2` was the exchanged number.
 
-The true exchanged number (2), is effectively hidden from anyone listening in the middle, since the only message passed between us was 12.  If someone is able to retrieve both the unencrypted result (12) and the encrypted value (2), they will still not know what the secret key is.  In this example, "12 modulo 10" is also equal to 2, so an interceptor could not know for certain whether the secret key is 5 or 10, and therefore could not dependably decrypt future messages.
+The true exchanged number (`2`), is effectively hidden from anyone listening in the middle, since the only message passed between us was `12`.  If someone is able to retrieve both the unencrypted result (`12`) and the encrypted value (`2`), they would still not know the value of the secret key.  In this example, `12 modulo 10` is also equal to `2`, so an interceptor could not know for certain whether the secret key is `5` or `10`, and therefore could not dependably decrypt future messages.
 
 Modulo is thus considered a "one-way" function, since it cannot be trivially reversed.
 
@@ -517,7 +538,7 @@ Modern encryption algorithms are, to vastly simplify and generalize, very comple
 
 > Quantum computers could, theoretically, crack these ciphers more quickly.  You can read more about this [here](https://www.infoworld.com/article/3040991/security/mits-new-5-atom-quantum-computer-could-make-todays-encryption-obsolete.html).  This technology is still in its infancy, so we probably don't need to worry about encrypted data being compromised in this manner just yet.
 
-The above example assumes that both parties were able to exchange a secret (in this case "5") ahead of time.  This is called *symmetric encryption*, since the same secret key is used for both encrypting and decrypting the message.  On the internet, however, this is often not a viable option - we need a way to send encrypted messages without requiring offline coordination to decide on a shared secret.  This is where asymmetric encryption comes into play.
+The above example assumes that both parties were able to exchange a secret (in this case `5`) ahead of time.  This is called *symmetric encryption*, since the same secret key is used for both encrypting and decrypting the message.  On the internet, however, this is often not a viable option - we need a way to send encrypted messages without requiring offline coordination to decide on a shared secret.  This is where asymmetric encryption comes into play.
 
 #### Asymmetric Encryption & Public Key Cryptography
 
@@ -525,7 +546,7 @@ In contrast to symmetric encryption, asymmetric encryption uses pairs of keys (o
 
 A *public key* is like an open box with an unbreakable lock.  If someone wants to send you a message, they can place that message in your public box, and close the lid to lock it.  The message can now be sent, to be delivered by an untrusted party without needing to worry about the contents being exposed.  Once I receive the box, I'll unlock it with my *private key* - the only existing key which can unlock that box.
 
-Exchanging *public keys* is like exchanging those boxes - since each private key is kept safe with the original owner, the contents of the box are safe in transit.
+Exchanging *public keys* is like exchanging those boxes - each private key is kept safe with the original owner, so the contents of the box are safe in transit.
 
 This is, of course, a massive simplification of how public key crytography works.  If you're curious to learn more (especially regarding the mathematical basis for these techniques) I'd strongly recommend this video.
 
@@ -537,7 +558,7 @@ In our app, the first step will be generating a public-private keypair for each 
 
 Encryption operations tend to be computationally intensive processes.  Since Javascript is single-threaded, doing these operations on the main UI thread will cause the browser to freeze for a few seconds.  Wrapping the operations in a promise will not help, since promises are for managing asynchronous operations on a single-thread, and do not provide any performance benefit for computationally intensive tasks.
 
-In order to keep the application performant, we will use a [WebWorker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) to perform computationally intensive tasks on a separate browser thread.
+In order to keep the application performant, we will use a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) to perform computationally intensive tasks on a separate browser thread.
 
 In order to perform strong asymmetric RSA encryption within the browser, we'll be using the [JSEncrypt](https://github.com/travist/jsencrypt), a reputable Javascript RSA implementation based on research at Stanford.  Using JSEncrypt, we'll create a few helper functions for encryption, decryption, and keypair generation.
 
@@ -597,11 +618,11 @@ function decrypt (content) {
 ```
 <br>
 
-This WebWorker will receive messages from the UI thread in the `onmessage` listener, perform the requested operation, and post the result back to the UI thread.  The private encryption key is never directly exposed to the UI thread, which helps to mitigate the potential for key theft from a [cross-site scripting (XSS) attack](https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)).
+This web worker will receive messages from the UI thread in the `onmessage` listener, perform the requested operation, and post the result back to the UI thread.  The private encryption key is never directly exposed to the UI thread, which helps to mitigate the potential for key theft from a [cross-site scripting (XSS) attack](https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)).
 
 ### 3.1 - Configure Vue App To Communicate with WebWorker
 
-Next, we'll configure the Vue component to communicate with the WebWorker.  Sequential call/response communications using event listeners can be painful to synchronize.  To simplify this, we'll create a utility function that wraps the entire communication lifecycle in a promise.  Add the following code to the `functions` block in `/public/page.js`.
+Next, we'll configure the Vue component to communicate with the web worker.  Sequential call/response communications using event listeners can be painful to synchronize.  To simplify this, we'll create a utility function that wraps the entire communication lifecycle in a promise.  Add the following code to the `methods` block in `/public/page.js`.
 
 ```javascript
 /** Post a message to the webworker, and return a promise that will resolve with the response.  */
@@ -632,11 +653,11 @@ getWebWorkerResponse (messageType, messagePayload) {
 ```
 <br>
 
-This code will allow us to trigger an operation on the WebWorker thread and receive the result with a single line of code.  This can be a very useful helper function in any project that outsources processing to WebWorkers.
+This code will allow us to trigger an operation on the web worker thread and receive the result with a single line of code.  This can be a very useful helper function in any project that outsources processing to web workers.
 
 ## 4 - Key Exchange
 
-Now that our WebWorker is in place, we'll configure the app to generate and exchange the public keys of each user.
+Now that our WebWorker is in place, we'll configure the app to generate and exchange public keys for each user.
 
 ### 4.0 - Add Server-Side Socket Listener To Transmit Public Keys
 
@@ -714,8 +735,8 @@ this.socket.on('NEW_CONNECTION', () => {
 })
 
 // Notify user that they've joined a new room
-this.socket.on('ROOM_JOINED', () => {
-  this.currentRoom = this.pendingRoom
+this.socket.on('ROOM_JOINED', (room) => {
+  this.currentRoom = room
   this.addNotification(`Joined Room - ${this.currentRoom}`)
   this.sendPublicKey()
 })
@@ -795,7 +816,7 @@ async sendMessage () {
   this.draft = ''
 
   // Instantly add (unencrypted) message to local UI
-  this.messages.push(message.toObject())
+  this.addMessage(message.toObject())
 
   if (this.destinationPublicKey) {
     // Encrypt message with the public key of the other user
@@ -820,7 +841,9 @@ let message = {
   recipient: this.destinationPublicKey,
   sender: this.originPublicKey
 }
-this.messages.push(message)
+
+// Instantly add (unencrypted) message to local UI
+this.addMessage(message)
 
 ...
 
@@ -844,7 +867,9 @@ this.socket.on('MESSAGE', async (message) => {
   if (message.recipient === this.originPublicKey) {
     // Decrypt the message text in the webworker thread
     message.text = await this.getWebWorkerResponse('decrypt', message.text)
-    this.messages.push(message)
+
+    // Instantly add (unencrypted) message to local UI
+    this.addMessage(message)
   }
 })
 ```
@@ -879,7 +904,7 @@ You may have noticed a massive flaw in the current app - if we open a third tab 
 
 This leaves us with two options -
 
-1. Encrypt and send a separate copy of the message to each user.
+1. Encrypt and send a separate copy of the message to each user, if there are more than one.
 1. Restrict each chat room to only allow two users at a time.
 
 Since this tutorial is already quite long, we'll be going with second, simpler option.
@@ -931,7 +956,7 @@ This new server-side logic will prevent a user from joining any room that alread
 
 ### 6.1 - Join Room From The Client Side
 
-Next, we'll add mroe logic to the client-side `joinRoom` function in `/public/page.js`.
+Next, we'll add more logic to the client-side `joinRoom` function in `/public/page.js`.
 
 ```javascript
 /** Join the specified chatroom */
@@ -952,7 +977,7 @@ joinRoom () {
 
 ### 6.2 - Add Notifications
 
-Let's create two more client-side socket listeners (in `/public/page.js`) to add notifications when the join request is rejected.
+Let's create two more client-side socket listeners (in `/public/page.js`), to notify us whenever a join request is rejected.
 
 ```javascript
 // Notify user that the room they are attempting to join is full
@@ -975,7 +1000,7 @@ this.socket.on('INTRUSION_ATTEMPT', () => {
 
 Finally, we'll add some HTML to provide an interface for the user to join a room of their choosing.
 
-Add the following to `/public/index.html` below the `<!-- Add Chat Room UI Here -->` comment.
+Add the following to `/public/index.html` below the `<!-- Add Room UI Here -->` comment.
 
 ```html
 <h1>CHATROOM</h1>
@@ -999,6 +1024,7 @@ autoscroll (element) {
   if (element) { element.scrollTop = element.scrollHeight }
 },
 ```
+<br>
 
 To auto-scroll the notification and message lists, we'll call `autoscroll` at the end of their respective `add` methods.
 
@@ -1010,10 +1036,9 @@ addMessage (message) {
 },
 
 /** Append a notification message in the UI */
-addNotification (notification) {
-  console.log(notification)
-  notification = `${new Date().toLocaleTimeString()} - ${notification}`
-  this.notifications.push(notification)
+addNotification (message) {
+  const timestamp = new Date().toLocaleTimeString()
+  this.notifications.push({ message, timestamp })
   this.autoscroll(this.$refs.notificationContainer)
 },
 ```
@@ -1022,6 +1047,8 @@ addNotification (notification) {
 ### 6.5 - Try it out
 
 That was the last step!  Try restarting the node app and reloading the page at `localhost:3000`.  You should now be able to freely switch between rooms, and any attempt to join the same room from a third browser tab will be rejected.
+
+![Screenshot 7](https://cdn.patricktriest.com/blog/images/posts/e2e-chat/screenshot_7.png)
 
 ## 7 - What next?
 
