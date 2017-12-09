@@ -12,7 +12,7 @@ app.use(express.static('public'))
 
 /** Manage behavior of each client socket connection */
 io.on('connection', (socket) => {
-  console.log('User Connected')
+  console.log(`User Connected - Socket ID ${socket.id}`)
 
   // Store the room that the socket is connected to
   // If you need to scale the app horizontally, you'll need to store this variable in a persistent store such as Redis.

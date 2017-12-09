@@ -1,5 +1,4 @@
 /* Global */
-
 :root {
   --black: #111111;
   --light-grey: #d6d6d6;
@@ -58,7 +57,7 @@ p { font-size: x-small; }
 }
 
 .message > p { font-size: small; }
-.title-header, p {
+.title-header > p {
   font-family: 'Montserrat', sans-serif;
   font-weight: 300;
 }
