@@ -56,20 +56,20 @@ const vm = new Vue ({
         this.sendPublicKey()
       })
 
-      // Notify user that they've joined a new room
+      // Broadcast public key when a new room is joined
       this.socket.on('ROOM_JOINED', (newRoom) => {
         this.currentRoom = newRoom
         this.addNotification(`Joined Room - ${this.currentRoom}`)
         this.sendPublicKey()
       })
 
-      // Save publickey when received
+      // Save public key when received
       this.socket.on('PUBLIC_KEY', (key) => {
         this.addNotification(`Public Key Received - ${this.getKeySnippet(key)}`)
         this.destinationPublicKey = key
       })
 
-      // Notify user that the other user has left the room
+      // Clear destination public key if other user leaves room
       this.socket.on('user disconnected', () => {
         this.notify(`User Disconnected - ${this.getKeySnippet(this.destinationKey)}`)
         this.destinationPublicKey = null
