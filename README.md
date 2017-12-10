@@ -1,22 +1,21 @@
-# Build An End-To-End Encrypted Messenger With Javascript
+## Open Cryptochat - A Tutorial
 
-*How can we send a message between two systems, without exposing the message contents to any eavesdroppers in the middle?*
+Cryptography is important.  Without encryption, the internet as we know it would not be possible - data sent online would be as vulnerable to interception as a message shouted across a crowded room.  Cryptography is also a major topic in current events, increasingly playing a central role in [law enforcement investigations](https://en.wikipedia.org/wiki/FBI%E2%80%93Apple_encryption_dispute) and [government legislation](https://www.politico.com/tipsheets/morning-cybersecurity/2017/11/10/texas-shooting-could-revive-encryption-legislation-223290).
 
-This simple question is one of the most important topics in information security - and is the key to much of our data stays safe online.
+Encryption is an invaluable tool for journalists, activists, nation-states, businesses, and everyday people who need to protect their data from the ever-present threat of hackers, spies, and advertising agencies.
 
-(revisit this section)
-Cryptography is an important topic right now.  Government intelligence agencies actively intercept a wide net of online communications and other data.  These disclosures might been jeopardized if not for the use of strong encryption in communications between journalists and whistle-blowers.  Policies on encryption have been a growing issue in US politics, with some figures calling for increased regulations on the types of encryption used in consumer products.
+An understanding of how to utilize strong encryption is essential for modern software development.  We will not be delving much into the underlying math and theory of cryptography for this tutorial; instead, the focus will be on how to harness these techniques for your own applications.
 
-An understanding of the techniques for using implementing strong encryption in different applications is essential for modern software development.  We will not be delving much into the underlying math of encryption in-depth in this tutorial; instead, the focus will be on how to harness these techniques for your own applications.
+![Screenshot 5](https://cdn.patricktriest.com/blog/images/posts/e2e-chat/screenshot_5.png)
 
-In this tutorial, we will walk through the basic concepts and implementation of an end-to-end 2048-bit RSA encrypted messenger. We'll be using Vue.js for coordinating the frontend functionality, along with a Node.js backend using Socket.io for sending messages between users.
+In this tutorial, we will walk through the basic concepts and implementation of an end-to-end 2048-bit [RSA encrypted](https://en.wikipedia.org/wiki/RSA_(cryptosystem)) messenger. We'll be utilizing [Vue.js](https://vuejs.org/) for coordinating the frontend functionality along with a [Node.js](https://nodejs.org/en/) backend using [Socket.io](https://socket.io/) for sending messages between users.
 
-- Preview Web App - https://chat.patricktriest.com
+- Live Preview - https://chat.patricktriest.com
 - Github Repository - https://github.com/triestpa/Open-Cryptochat
 
-The concepts that we are covering in this tutorial are meant to be platform-agnostic.  We will be building a traditional browser-based web app, but you can adapt this Javascript code to work within a pre-built desktop (using Electron) or mobile (React Native, Ionic, or Cordova) application binary if you are concerned about browser-based application security.[^1]
+The concepts that we are covering in this tutorial are implemented in Javascript and are mostly intended to be platform-agnostic.  We will be building a traditional browser-based web app, but you can adapt this code to work within a pre-built desktop (using [Electron](https://electronjs.org/)) or mobile ( [React Native](https://facebook.github.io/react-native/), [Ionic](https://ionicframework.com/), [Cordova](https://cordova.apache.org/)) application binary if you are concerned about browser-based application security.[^1]  Likewise, implementing similar functionality in another programming language should be relatively straightforward since most languages have reputable open-source encryption libraries available; the base syntax will change but the core concepts remain universal.
 
-> Disclaimer - This is meant to be a primer in end-to-end encryption implementation, not a definitive guide to building the Fort Knox of browser chat applications. I've worked to provide useful information on adding cryptography to your Javascript applications, but I cannot 100% guarantee the security of the resulting app.  There's a lot that can go wrong at all stages of the process, especially at the stages not covered by this tutorial such as setting up web hosting and securing the server(s).  If you are a security expert, and you find vulnerabilities in the tutorial code, please feel free to reach out to me over email (patrick.triest@gmail.com) or in the comments section below.
+> Disclaimer - This is meant to be a primer in end-to-end encryption implementation, not a definitive guide to building the Fort Knox of browser chat applications. I've worked to provide useful information on adding cryptography to your Javascript applications, but I cannot 100% guarantee the security of the resulting app.  There's a lot that can go wrong at all stages of the process, especially at the stages not covered by this tutorial such as setting up web hosting and securing the server(s).  If you are a security expert, and you find vulnerabilities in the tutorial code, please feel free to reach out to me by email (patrick.triest@gmail.com) or in the comments section below.
 
 ## 1 - Project Setup
 
@@ -24,16 +23,16 @@ The concepts that we are covering in this tutorial are meant to be platform-agno
 
 You'll need to have [Node.js](https://nodejs.org/en/) (version 6 or higher) installed in order to run the backend for this app.
 
-Create an empty directory for the project, and add a `package.json` file with the following contents.
+Create an empty directory for the project and add a `package.json` file with the following contents.
 
 ```json
 {
-  "name": "encrypted-chat-tutorial",
+  "name": "open-cryptochat",
   "version": "1.0.0",
   "node":"8.1.4",
   "license": "MIT",
   "author": "patrick.triest@gmail.com",
-  "description": "End-to-end RSA-256 encrypted chat application.",
+  "description": "End-to-end RSA-2048 encrypted chat application.",
   "main": "app.js",
   "engines": {
     "node": ">=7.6"
@@ -49,7 +48,7 @@ Create an empty directory for the project, and add a `package.json` file with th
 ```
 <br>
 
-Run `npm install` on the command line to install the Node.js dependencies.
+Run `npm install` on the command line to install the two Node.js dependencies.
 
 ### 1.1 - Create Node.js App
 
@@ -80,7 +79,7 @@ http.listen(port, () => {
 
 The is the core server logic.  Right now, all it will do is start a server and make all of the files in the local `/public` directory accessible to web clients.
 
-> In production, I would strongly recommend hosting your frontend code separately from the Node.js app, using battle-hardened server software such [Apache](https://httpd.apache.org/) and [Nginx](https://www.nginx.com/), or hosting the website on file storage service such as AWS S3.  For this tutorial, however, using the Express static file server is the simplest way to get the app running.
+> In production, I would strongly recommend hosting your frontend code separately from the Node.js app, using battle-hardened server software such [Apache](https://httpd.apache.org/) and [Nginx](https://www.nginx.com/), or hosting the website on file storage service such as [AWS S3](https://aws.amazon.com/s3/).  For this tutorial, however, using the Express static file server is the simplest way to get the app running.
 
 ### 1.2 - Add Frontend
 
@@ -377,7 +376,7 @@ p { font-size: x-small; }
 
 We won't really be going into the CSS, but I can assure you that it's all fairly straight-forward.
 
-For the sake of simplicity, we won't worry about adding a build system to our frontend.  A build system is just not really necessary for an app this simple.  You are very welcome (and encouraged) to add a build system such as Webpack, Gulp, or Rollup to the application if you decide to fork this code into your own project.
+For the sake of simplicity, we won't bother to add a build system to our frontend.  A build system, in my opinion, is just not really necessary for an app this simple (the total gzipped payload of the completed app is under 100kb).  You are very welcome (and encouraged) to add a build system such as [Webpack](https://webpack.js.org/), [Gulp](https://gulpjs.com/), or [Rollup](https://rollupjs.org/) to the application if you decide to fork this code into your own project.
 
 ### 1.3 - Try it out
 
@@ -412,7 +411,7 @@ io.on('connection', (socket) => {
 
   /** Broadcast a received message to the room */
   socket.on('MESSAGE', (msg) => {
-    console.log(msg)
+    console.log(msg.text)
     socket.broadcast.to(currentRoom).emit('MESSAGE', msg)
   })
 })
@@ -520,27 +519,29 @@ Now, restart the server and open `http://localhost:3000` in two separate tabs/wi
 
 Cool, now we have a real-time messaging application.  Before adding end-to-end encryption, it's important to have a basic understanding of how asymmetric encryption works.
 
-#### Symetric Encryption & Trust
+####  Symetric Encryption & One Way Functions
 
 Let's say we're trading secret numbers.  We're sending the numbers through a third party, but we don't want the third party to know which number we are exchanging.
 
-In order to accomplish this, we'll have to exchange a shared secret first - let's use `5`.
+In order to accomplish this, we'll have to exchange a shared secret first - let's use `7`.  We'll use modular arithmetic in order to transform an encrypted input into an decrypted output.  We can write this as a simple equation -
 
-We'll use modular arithmetic in order to transform an input number into an output.  We can write this as simple equation, `x modulo s = y`, where `x` is the exposed (encrypted) message, `s` is the shared secret key (`5`), and `y` is the unencrypted result.
+`x modulo 7 = y`
 
-If one of us wants to exchange the number `2`, they can send `12` as a message since `12 modulo 5 = 2` (5 goes into 12 twice, leaving 2 remaining).  We both share the secret key (`5`), so we'll both know that `2` was the exchanged number.
+We'll treat `x` as the exposed (encrypted) message and `y` is the unencrypted result.
 
-The true exchanged number (`2`), is effectively hidden from anyone listening in the middle, since the only message passed between us was `12`.  If someone is able to retrieve both the unencrypted result (`12`) and the encrypted value (`2`), they would still not know the value of the secret key.  In this example, `12 modulo 10` is also equal to `2`, so an interceptor could not know for certain whether the secret key is `5` or `10`, and therefore could not dependably decrypt future messages.
+If one of us wants to exchange the number `2`, we could send `16` as a message since `16 modulo 7 = 2` (7 goes into 16 twice, leaving 2 remaining).  We both know the secret key (`7`), so we'll both know that `2` was the exchanged number.
 
-Modulo is thus considered a "one-way" function, since it cannot be trivially reversed.
+The exchanged number (`2`), is effectively hidden from anyone listening in the middle since the only message passed between us was `16`.  If someone is able to retrieve both the unencrypted result (`16`) and the encrypted value (`2`), they would still not know the value of the secret key.  In this example, `16 modulo 14` is also equal to `2`, so an interceptor could not know for certain whether the secret key is `7` or `14`, and therefore could not dependably decipher the next message.
 
-Modern encryption algorithms are, to vastly simplify and generalize, very complex applications of this general principle.  Through the use of large prime numbers (prime factorization is computationally expensive), long private keys, and multiple rounds of cipher transformations, these algorithms will take a very inconvenient amount a time (often over 1 million years) to crack.
+Modulo is thus considered a "one-way" function since it cannot be trivially reversed.
+
+Modern encryption algorithms are, to vastly simplify and generalize, very complex applications of this general principle.  Through the use of large prime numbers, modular exponentiation, long private keys, and multiple rounds of cipher transformations, these algorithms generally take a very inconvenient amount a time (1+ million years) to crack.
 
 > Quantum computers could, theoretically, crack these ciphers more quickly.  You can read more about this [here](https://www.infoworld.com/article/3040991/security/mits-new-5-atom-quantum-computer-could-make-todays-encryption-obsolete.html).  This technology is still in its infancy, so we probably don't need to worry about encrypted data being compromised in this manner just yet.
 
-The above example assumes that both parties were able to exchange a secret (in this case `5`) ahead of time.  This is called *symmetric encryption*, since the same secret key is used for both encrypting and decrypting the message.  On the internet, however, this is often not a viable option - we need a way to send encrypted messages without requiring offline coordination to decide on a shared secret.  This is where asymmetric encryption comes into play.
+The above example assumes that both parties were able to exchange a secret (in this case `7`) ahead of time.  This is called *symmetric encryption* since the same secret key is used for both encrypting and decrypting the message.  On the internet, however, this is often not a viable option - we need a way to send encrypted messages without requiring offline coordination to decide on a shared secret.  This is where asymmetric encryption comes into play.
 
-#### Asymmetric Encryption & Public Key Cryptography
+#### Public Key Cryptography
 
 In contrast to symmetric encryption, asymmetric encryption uses pairs of keys (one public, one private) instead of a single shared secret - *public keys* are for encrypting data, and *private keys* are for decrypting data.
 
@@ -548,26 +549,26 @@ A *public key* is like an open box with an unbreakable lock.  If someone wants t
 
 Exchanging *public keys* is like exchanging those boxes - each private key is kept safe with the original owner, so the contents of the box are safe in transit.
 
-This is, of course, a massive simplification of how public key crytography works.  If you're curious to learn more (especially regarding the mathematical basis for these techniques) I'd strongly recommend this video.
+This is, of course, a massive simplification of how public key cryptography works.  If you're curious to learn more (especially regarding the history and mathematical basis for these techniques) I would strongly recommend starting with these two videos.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/YEBfamv-_do" frameborder="0" gesture="media" allow="encrypted-media" allowfullscreen></iframe>
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/wXB-V_Keiu8" frameborder="0" gesture="media" allow="encrypted-media" allowfullscreen></iframe>
 
-In our app, the first step will be generating a public-private keypair for each user.  Then, once the users are in the same chat, we will exchange *public keys* so that each user can encrypt messages that only the other user can decrypt.  Hence, we will always encrypt messages using the recipient's *public key*, and we will always decrypt messages using the recipient's *private key*.
-
-## 3 - Crypto WebWorker
+## 3 - Crypto Web Worker
 
 Encryption operations tend to be computationally intensive processes.  Since Javascript is single-threaded, doing these operations on the main UI thread will cause the browser to freeze for a few seconds.  Wrapping the operations in a promise will not help, since promises are for managing asynchronous operations on a single-thread, and do not provide any performance benefit for computationally intensive tasks.
 
-In order to keep the application performant, we will use a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) to perform computationally intensive tasks on a separate browser thread.
+In order to keep the application performant, we will use a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) to perform cryptographic computations on a separate browser thread.
 
-In order to perform strong asymmetric RSA encryption within the browser, we'll be using the [JSEncrypt](https://github.com/travist/jsencrypt), a reputable Javascript RSA implementation based on research at Stanford.  Using JSEncrypt, we'll create a few helper functions for encryption, decryption, and keypair generation.
+In order to perform strong asymmetric RSA encryption within the browser, we'll be using the [JSEncrypt](https://github.com/travist/jsencrypt), a reputable Javascript RSA implementation originating from Stanford.  Using JSEncrypt, we'll create a few helper functions for encryption, decryption, and key pair generation.
 
-### 3.0 - Create WebWorker To Wrap the JSencrypt Methods
+### 3.0 - Create Web Worker To Wrap the JSencrypt Methods
 
 Add a new file called `crypto-worker.js` in the `public` directory.  This file will store our WebWorker code in order to perform encryption operations on a separate browser thread.
 
 ```javascript
-self.window = self // This is required for the jsencrypt library to work within the webworker
+self.window = self // This is required for the jsencrypt library to work within the web worker
 
 // Import the jsencrypt library
 self.importScripts('https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/2.3.1/jsencrypt.min.js');
@@ -620,12 +621,12 @@ function decrypt (content) {
 
 This web worker will receive messages from the UI thread in the `onmessage` listener, perform the requested operation, and post the result back to the UI thread.  The private encryption key is never directly exposed to the UI thread, which helps to mitigate the potential for key theft from a [cross-site scripting (XSS) attack](https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)).
 
-### 3.1 - Configure Vue App To Communicate with WebWorker
+### 3.1 - Configure Vue App To Communicate with Web Worker
 
 Next, we'll configure the Vue component to communicate with the web worker.  Sequential call/response communications using event listeners can be painful to synchronize.  To simplify this, we'll create a utility function that wraps the entire communication lifecycle in a promise.  Add the following code to the `methods` block in `/public/page.js`.
 
 ```javascript
-/** Post a message to the webworker, and return a promise that will resolve with the response.  */
+/** Post a message to the web worker and return a promise that will resolve with the response.  */
 getWebWorkerResponse (messageType, messagePayload) {
   return new Promise((resolve, reject) => {
     // Generate a random message id to identify the corresponding event callback
@@ -657,7 +658,7 @@ This code will allow us to trigger an operation on the web worker thread and rec
 
 ## 4 - Key Exchange
 
-Now that our WebWorker is in place, we'll configure the app to generate and exchange public keys for each user.
+In our app, the first step will be generating a public-private key pair for each user.  Then, once the users are in the same chat, we will exchange *public keys* so that each user can encrypt messages which only the other user can decrypt.  Hence, we will always encrypt messages using the recipient's *public key*, and we will always decrypt messages using the recipient's *private key*.
 
 ### 4.0 - Add Server-Side Socket Listener To Transmit Public Keys
 
@@ -678,9 +679,9 @@ socket.on('disconnect', () => {
 ```
 <br>
 
-### 4.1 - Generate Keypair In Vue App
+### 4.1 - Generate Key Pair In Vue App
 
-Next, we'll replace the `created` function in `/public/page.js` to initialize the WebWorker and generate a new keypair.
+Next, we'll replace the `created` function in `/public/page.js` to initialize the WebWorker and generate a new key pair.
 
 ```javascript
 async created () {
@@ -734,20 +735,20 @@ this.socket.on('NEW_CONNECTION', () => {
   this.sendPublicKey()
 })
 
-// Notify user that they've joined a new room
-this.socket.on('ROOM_JOINED', (room) => {
-  this.currentRoom = room
+// Broadcast public key when a new room is joined
+this.socket.on('ROOM_JOINED', (newRoom) => {
+  this.currentRoom = newRoom
   this.addNotification(`Joined Room - ${this.currentRoom}`)
   this.sendPublicKey()
 })
 
-// Save publickey when received
+// Save public key when received
 this.socket.on('PUBLIC_KEY', (key) => {
   this.addNotification(`Public Key Received - ${this.getKeySnippet(key)}`)
   this.destinationPublicKey = key
 })
 
-// Notify user that the other user has left the room
+// Clear destination public key if other user leaves room
 this.socket.on('user disconnected', () => {
   this.notify(`User Disconnected - ${this.getKeySnippet(this.destinationKey)}`)
   this.destinationPublicKey = null
@@ -831,31 +832,6 @@ async sendMessage () {
 ```
 <br>
 
-###### Digression - Immutable.js
-
-Note that we're using [Immutable.js](https://facebook.github.io/immutable-js/) to work with the message object.  This prevents unintended side-effects from changing object data and references. For instance, can you infer what would happen if we did this instead?
-
-```javascript
-let message = {
-  text: this.draft,
-  recipient: this.destinationPublicKey,
-  sender: this.originPublicKey
-}
-
-// Instantly add (unencrypted) message to local UI
-this.addMessage(message)
-
-...
-
-message.text = encryptedText
-this.socket.emit('MESSAGE', message)
-```
-<br>
-
-In the above example, the encryption operation would assign the encrypted text directly to the `text` field of the message object by *reference*.  As a result, the message text in the UI would suddenly transform into the unreadable encrypted version, which is not what we want.
-
-There are other workarounds that do not require libraries (such as serializing the object to a JSON string and then parsing it back as a new object), but Immutable.js can be a very useful tool for simplifying state management on larger projects.
-
 ### 5.1 - Receive and Decrypt Message
 
 Modify the client-side `message` listener in `/public/page.js` to decrypt the message once it is received.
@@ -875,7 +851,7 @@ this.socket.on('MESSAGE', async (message) => {
 ```
 <br>
 
-### 5.2 - Display Decrypted Message List
+### 5.2 - Display Message List
 
 Modify the message list UI in `/public/index.html` (inside the `chat-container`) to display the decrypted message and the abbreviated public key of the sender.
 
@@ -891,12 +867,12 @@ Modify the message list UI in `/public/index.html` (inside the `chat-container`)
 
 ### 5.3 - Try It Out
 
-Try restarting the server and reloading the page at `http://localhost:3000`.  The UI should look mostly unchanged from how it was before, besides displaying the public key snippet of whoever sent each message.  If you check the command-line output, however, you'll see that instead of being able to read the messages being sent between tabs, the output now gives the corresponding public keys and the garbled encrypted text.
-
-Congrats! You've now built a (mostly) functional end-to-end messaging app.
+Try restarting the server and reloading the page at `http://localhost:3000`.  The UI should look mostly unchanged from how it was before, besides displaying the public key snippet of whoever sent each message.
 
 ![Screenshot 5](https://cdn.patricktriest.com/blog/images/posts/e2e-chat/screenshot_5.png)
 ![Screenshot 6](https://cdn.patricktriest.com/blog/images/posts/e2e-chat/screenshot_6.png)
+
+If you check the command-line output you'll see that instead of being able to read the messages being sent between tabs, the output now displays garbled encrypted text.
 
 ## 6 - Chatrooms
 
@@ -911,7 +887,7 @@ Since this tutorial is already quite long, we'll be going with second, simpler o
 
 ### 6.0 - Server-side Room Join Logic
 
-In order to enforce this new 2-member limit, we'll modify the server-side socket `JOIN` listener in `/app.js`, at the top of socket connection listener block.
+In order to enforce this new 2-user limit, we'll modify the server-side socket `JOIN` listener in `/app.js`, at the top of socket connection listener block.
 
 ```javascript
 // Store the room that the socket is connected to
@@ -952,11 +928,11 @@ socket.on('JOIN', (roomName) => {
 ```
 <br>
 
-This new server-side logic will prevent a user from joining any room that already has two users.
+This modified socket logic will prevent a user from joining any room that already has two users.
 
 ### 6.1 - Join Room From The Client Side
 
-Next, we'll add more logic to the client-side `joinRoom` function in `/public/page.js`.
+Next, we'll modify our client-side `joinRoom` function in `/public/page.js`, in order to reset the state of the chat when switching rooms.
 
 ```javascript
 /** Join the specified chatroom */
@@ -977,7 +953,7 @@ joinRoom () {
 
 ### 6.2 - Add Notifications
 
-Let's create two more client-side socket listeners (in `/public/page.js`), to notify us whenever a join request is rejected.
+Let's create two more client-side socket listeners (within the `setupSocketListeners` function in `/public/page.js`), to notify us whenever a join request is rejected.
 
 ```javascript
 // Notify user that the room they are attempting to join is full
@@ -1029,7 +1005,7 @@ autoscroll (element) {
 To auto-scroll the notification and message lists, we'll call `autoscroll` at the end of their respective `add` methods.
 
 ```javascript
-/** Add message to UI, and scroll the view to display the new message. */
+/** Add message to UI and scroll the view to display the new message. */
 addMessage (message) {
   this.messages.push(message)
   this.autoscroll(this.$refs.chatContainer)
@@ -1054,26 +1030,26 @@ That was the last step!  Try restarting the node app and reloading the page at `
 
 Congrats! You have just built a completely functional end-to-end encrypted messaging app.
 
-You can view the complete source code for the app here - (https://github.com/triestpa/Open-Cryptochat)
-A live preview of the app is running at https://chat.patricktriest.com
+Github Repository - https://github.com/triestpa/Open-Cryptochat
+Live Preview - https://chat.patricktriest.com
 
-Using this baseline source code you could deploy a private messaging app on your own servers.  In order to coordinate which room to meet in, one slick option could be using a time-based pseudo-random number generator (such as Google Authenticator), with a shared seed between you and a second party (I've got a web-based TOTP generator tutorial in the works - stay tuned).
+Using this baseline source code you could deploy a private messaging app on your own servers.  In order to coordinate which room to meet in, one slick option could be using a time-based pseudo-random number generator (such as [Google Authenticator](https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en)), with a shared seed between you and a second party (I've got a Javascript "Google Authenticator" clone tutorial in the works - stay tuned).
 
 ### Further Improvements
 
 There are lots of ways to build up the app from here:
 
 - Group chats, by storing multiple public keys, and encrypting the message for each user individually.
-- Multimedia messages, by encrypting the byte-array containing the photo/video/audio file.
+- Multimedia messages, by encrypting a byte-array containing the media file.
 - Import and export key pairs as local files.
-- Sign messages with the private key for sender identity verification.  Note that this is a trade-off because it increases the difficulty of fabricating messages, but also undermines the core anonymity outlined in the OTR messaging standard.
+- Sign messages with the private key for sender identity verification.  This is a trade-off because it increases the difficulty of fabricating messages, but also undermines the goal of "deniable authentication" as outlined in the [OTR messaging standard](https://en.wikipedia.org/wiki/Off-the-Record_Messaging).
 - Experiment with different encryption systems such as:
-  - **AES** - Symmetric encryption, with a shared secret between the users.  This is the only publically available algorithm that is in use by the NSA and US Military.
-  - **ElGamal** - Similar to RSA, but with smaller cyphertexts, faster decryption, and slower encryption.  This is the core algorithm that is used in PGP (a popular tool for email encryption).
-  - Implement a **Diffie-Helman** key exchange.  This is a technique of using asymmetric encryption (such as ElGamal) to exchange a shared secret, such as a symmetric encryption key (for AES).  Building this on top of our existing project, and exchanging a new shared secret before each message, is a good way to improve the security of the app (see "Perfect Forward Security").
+  - [**AES**](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard) - Symmetric encryption, with a shared secret between the users.  This is the only publicly available algorithm that is in use by the NSA and US Military.
+  - [**ElGamal**](https://en.wikipedia.org/wiki/ElGamal_encryption) - Similar to RSA, but with smaller cyphertexts, faster decryption, and slower encryption.  This is the core algorithm that is used in [PGP](https://en.wikipedia.org/wiki/Pretty_Good_Privacy).
+  - Implement a [**Diffie-Helman**](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange) key exchange.  This is a technique of using asymmetric encryption (such as ElGamal) to exchange a shared secret, such as a symmetric encryption key (for AES).  Building this on top of our existing project, and exchanging a new shared secret before each message, is a good way to improve the security of the app (see [Perfect Forward Security](https://en.wikipedia.org/wiki/Forward_secrecy)).
 - Build an app for virtually any use-case where intermediate servers should never have unencrypted access to the transmitted data, such as password-managers and P2P (peer-to-peer) networks.
-- Refactor the app for React Native, Ionic, Cordova, or Electron in order to provide a secure pre-built application bundle for mobile and/or desktop environments.[^Security Implications of Ephemeral Keypairs]
+- Refactor the app for [React Native](https://facebook.github.io/react-native/), [Ionic](https://ionicframework.com/), [Cordova](https://cordova.apache.org/), or [Electron](https://electronjs.org/) in order to provide a secure pre-built application bundle for mobile and/or desktop environments.
 
-Feel free to comment below with questions or feedback about the tutorial, and stay tuned for more full-stack Javascript tutorials in the coming weeks.
+Feel free to comment below with questions, responses, and/or feedback on the tutorial.
 
-[^1]:**Security Implications Of Browser Based Encryption**<br><br>Please remember to be careful. The use of these protocols in a browser-based Javascript app is a great way to experiment and understand how they work in practice, but this app is not a suitable replacement for established, peer-reviewed encryption protocol implementations such as OpenSSL (RSA, used for TLS/SSL in HTTPS) and GnuPG (for PGP).<br><br> Client-side browser Javascript encryption is a controversial topic among security experts due to the vulnerabilities present in web application delivery versus pre-packaged software distributions that run outside the browser.  Some of these issues can be mitigated by utilizing HTTPS to prevent man-in-the-middle resource injection attacks, and by avoiding persistent storage of unencrypted sensitive data within the browser. <br><br> Exposing the frontend Javascript encryption source code does not represent a security vulnerability unless you are hard-coding encryption keys within the code (please don't do this).
+[^1]:**Security Implications Of Browser Based Encryption**<br><br>Please remember to be careful. The use of these protocols in a browser-based Javascript app is a great way to experiment and understand how they work in practice, but this app is not a suitable replacement for established, peer-reviewed encryption protocol implementations such as [OpenSSL](https://en.wikipedia.org/wiki/OpenSSL) and [GnuPG](https://en.wikipedia.org/wiki/GNU_Privacy_Guard).<br><br> Client-side browser Javascript encryption is a controversial topic among security experts due to the vulnerabilities present in web application delivery versus pre-packaged software distributions that run outside the browser.  Many of these issues can be mitigated by utilizing HTTPS to prevent man-in-the-middle resource injection attacks, and by avoiding persistent storage of unencrypted sensitive data within the browser, but it is important to stay aware of potential vulnerabilities in the web platform.
