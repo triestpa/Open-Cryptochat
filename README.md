@@ -1,3 +1,5 @@
+# An Introduction To Utilizing Public-Key Cryptography In Javascript
+
 ## Open Cryptochat - A Tutorial
 
 Cryptography is important.  Without encryption, the internet as we know it would not be possible - data sent online would be as vulnerable to interception as a message shouted across a crowded room.  Cryptography is also a major topic in current events, increasingly playing a central role in [law enforcement investigations](https://en.wikipedia.org/wiki/FBI%E2%80%93Apple_encryption_dispute) and [government legislation](https://www.politico.com/tipsheets/morning-cybersecurity/2017/11/10/texas-shooting-could-revive-encryption-legislation-223290).
@@ -77,13 +79,13 @@ http.listen(port, () => {
 ```
 <br>
 
-The is the core server logic.  Right now, all it will do is start a server and make all of the files in the local `/public` directory accessible to web clients.
+This is the core server logic.  Right now, all it will do is start a server and make all of the files in the local `/public` directory accessible to web clients.
 
-> In production, I would strongly recommend hosting your frontend code separately from the Node.js app, using battle-hardened server software such [Apache](https://httpd.apache.org/) and [Nginx](https://www.nginx.com/), or hosting the website on file storage service such as [AWS S3](https://aws.amazon.com/s3/).  For this tutorial, however, using the Express static file server is the simplest way to get the app running.
+> In production, I would strongly recommend serving your frontend code separately from the Node.js app, using battle-hardened server software such [Apache](https://httpd.apache.org/) and [Nginx](https://www.nginx.com/), or hosting the website on file storage service such as [AWS S3](https://aws.amazon.com/s3/).  For this tutorial, however, using the Express static file server is the simplest way to get the app running.
 
 ### 1.2 - Add Frontend
 
-Create a new directory called `public`.  This is where we'll put all of the front-end web app code.
+Create a new directory called `public`.  This is where we'll put all of the frontend web app code.
 
 ##### 1.2.0 - Add HTML Template
 Create a new file, `/public/index.html`, and add these contents.
@@ -167,7 +169,7 @@ This script will initialize the Vue.js application and will add a "Hello World" 
 
 ##### 1.2.2 - Add Styling
 
-We'll go ahead and add all of the project CSS right now.  Create a new file, `/public/styles.css` and paste in the following stylesheet.
+Create a new file, `/public/styles.css` and paste in the following stylesheet.
 
 <style>
 .language-css {
@@ -376,7 +378,7 @@ p { font-size: x-small; }
 
 We won't really be going into the CSS, but I can assure you that it's all fairly straight-forward.
 
-For the sake of simplicity, we won't bother to add a build system to our frontend.  A build system, in my opinion, is just not really necessary for an app this simple (the total gzipped payload of the completed app is under 100kb).  You are very welcome (and encouraged) to add a build system such as [Webpack](https://webpack.js.org/), [Gulp](https://gulpjs.com/), or [Rollup](https://rollupjs.org/) to the application if you decide to fork this code into your own project.
+For the sake of simplicity, we won't bother to add a build system to our frontend.  A build system, in my opinion, is just not really necessary for an app this simple (the total gzipped payload of the completed app is under 100kb).  You are very welcome (and encouraged, since it will allow the app to be backwards compatible with outdated browsers) to add a build system such as [Webpack](https://webpack.js.org/), [Gulp](https://gulpjs.com/), or [Rollup](https://rollupjs.org/) to the application if you decide to fork this code into your own project.
 
 ### 1.3 - Try it out
 
@@ -411,7 +413,7 @@ io.on('connection', (socket) => {
 
   /** Broadcast a received message to the room */
   socket.on('MESSAGE', (msg) => {
-    console.log(msg.text)
+    console.log(`New Message - ${msg.text}`)
     socket.broadcast.to(currentRoom).emit('MESSAGE', msg)
   })
 })
@@ -523,15 +525,21 @@ Cool, now we have a real-time messaging application.  Before adding end-to-end e
 
 Let's say we're trading secret numbers.  We're sending the numbers through a third party, but we don't want the third party to know which number we are exchanging.
 
-In order to accomplish this, we'll have to exchange a shared secret first - let's use `7`.  We'll use modular arithmetic in order to transform an encrypted input into an decrypted output.  We can write this as a simple equation -
+In order to accomplish this, we'll exchange a shared secret first - let's use `7`.
 
-`x modulo 7 = y`
+To encrypt the message, we'll first multiply our shared secret (`7`) by a random number `n`, and add a value `x` to the result.  In this equation, `x` represents the number that we want to send and `y` represents the encrypted result.
 
-We'll treat `x` as the exposed (encrypted) message and `y` is the unencrypted result.
+`(7 * n) + x = y`
 
-If one of us wants to exchange the number `2`, we could send `16` as a message since `16 modulo 7 = 2` (7 goes into 16 twice, leaving 2 remaining).  We both know the secret key (`7`), so we'll both know that `2` was the exchanged number.
+We can then use modular arithmetic in order to transform an encrypted input into the decrypted output.
 
-The exchanged number (`2`), is effectively hidden from anyone listening in the middle since the only message passed between us was `16`.  If someone is able to retrieve both the unencrypted result (`16`) and the encrypted value (`2`), they would still not know the value of the secret key.  In this example, `16 modulo 14` is also equal to `2`, so an interceptor could not know for certain whether the secret key is `7` or `14`, and therefore could not dependably decipher the next message.
+`y mod 7 = x`
+
+Here, `y` as the exposed (encrypted) message and `x` is the original unencrypted message.
+
+If one of us wants to exchange the number `2`, we could compute `(7*4) + 2` and send `30` as a message.  We both know the secret key (`7`), so we'll both be able to calculate `30 mod 7` and determine that `2` was the original number.
+
+The original number (`2`), is effectively hidden from anyone listening in the middle since the only message passed between us was `30`.  If a third party is able to retrieve both the unencrypted result (`30`) and the encrypted value (`2`), they would still not know the value of the secret key.  In this example, `30 mod 14` and `30 mod 28` are also equal to `2`, so an interceptor could not know for certain whether the secret key is `7`, `14`, or `28`, and therefore could not dependably decipher the next message.
 
 Modulo is thus considered a "one-way" function since it cannot be trivially reversed.
 
@@ -543,13 +551,13 @@ The above example assumes that both parties were able to exchange a secret (in t
 
 #### Public Key Cryptography
 
-In contrast to symmetric encryption, asymmetric encryption uses pairs of keys (one public, one private) instead of a single shared secret - *public keys* are for encrypting data, and *private keys* are for decrypting data.
+In contrast to symmetric encryption, public key cryptography (asymmetric encryption) uses pairs of keys (one public, one private) instead of a single shared secret - *public keys* are for encrypting data, and *private keys* are for decrypting data.
 
-A *public key* is like an open box with an unbreakable lock.  If someone wants to send you a message, they can place that message in your public box, and close the lid to lock it.  The message can now be sent, to be delivered by an untrusted party without needing to worry about the contents being exposed.  Once I receive the box, I'll unlock it with my *private key* - the only existing key which can unlock that box.
+A *public key* is like an open box with an unbreakable lock.  If someone wants to send you a message, they can place that message in your public box, and close the lid to lock it.  The message can now be sent, to be delivered by an untrusted party without needing to worry about the contents being exposed.  Once I receive the box, I'll unlock it with my *private key* - the only existing key which can open that box.
 
 Exchanging *public keys* is like exchanging those boxes - each private key is kept safe with the original owner, so the contents of the box are safe in transit.
 
-This is, of course, a massive simplification of how public key cryptography works.  If you're curious to learn more (especially regarding the history and mathematical basis for these techniques) I would strongly recommend starting with these two videos.
+This is, of course, a bare-bones simplification of how public key cryptography works.  If you're curious to learn more (especially regarding the history and mathematical basis for these techniques) I would strongly recommend starting with these two videos.
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/YEBfamv-_do" frameborder="0" gesture="media" allow="encrypted-media" allowfullscreen></iframe>
 
@@ -557,15 +565,15 @@ This is, of course, a massive simplification of how public key cryptography work
 
 ## 3 - Crypto Web Worker
 
-Encryption operations tend to be computationally intensive processes.  Since Javascript is single-threaded, doing these operations on the main UI thread will cause the browser to freeze for a few seconds.  Wrapping the operations in a promise will not help, since promises are for managing asynchronous operations on a single-thread, and do not provide any performance benefit for computationally intensive tasks.
+Cryptographic operations tend to be computationally intensive.  Since Javascript is single-threaded, doing these operations on the main UI thread will cause the browser to freeze for a few seconds.
 
-In order to keep the application performant, we will use a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) to perform cryptographic computations on a separate browser thread.
+> Wrapping the operations in a promise will not help, since promises are for managing asynchronous operations on a single-thread, and do not provide any performance benefit for computationally intensive tasks.
 
-In order to perform strong asymmetric RSA encryption within the browser, we'll be using the [JSEncrypt](https://github.com/travist/jsencrypt), a reputable Javascript RSA implementation originating from Stanford.  Using JSEncrypt, we'll create a few helper functions for encryption, decryption, and key pair generation.
+In order to keep the application performant, we will use a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) to perform cryptographic computations on a separate browser thread.  We'll be using [JSEncrypt](https://github.com/travist/jsencrypt), a reputable Javascript RSA implementation originating from Stanford.  Using JSEncrypt, we'll create a few helper functions for encryption, decryption, and key pair generation.
 
 ### 3.0 - Create Web Worker To Wrap the JSencrypt Methods
 
-Add a new file called `crypto-worker.js` in the `public` directory.  This file will store our WebWorker code in order to perform encryption operations on a separate browser thread.
+Add a new file called `crypto-worker.js` in the `public` directory.  This file will store our web worker code in order to perform encryption operations on a separate browser thread.
 
 ```javascript
 self.window = self // This is required for the jsencrypt library to work within the web worker
@@ -623,7 +631,7 @@ This web worker will receive messages from the UI thread in the `onmessage` list
 
 ### 3.1 - Configure Vue App To Communicate with Web Worker
 
-Next, we'll configure the Vue component to communicate with the web worker.  Sequential call/response communications using event listeners can be painful to synchronize.  To simplify this, we'll create a utility function that wraps the entire communication lifecycle in a promise.  Add the following code to the `methods` block in `/public/page.js`.
+Next, we'll configure the UI controller to communicate with the web worker.  Sequential call/response communications using event listeners can be painful to synchronize.  To simplify this, we'll create a utility function that wraps the entire communication lifecycle in a promise.  Add the following code to the `methods` block in `/public/page.js`.
 
 ```javascript
 /** Post a message to the web worker and return a promise that will resolve with the response.  */
@@ -654,7 +662,7 @@ getWebWorkerResponse (messageType, messagePayload) {
 ```
 <br>
 
-This code will allow us to trigger an operation on the web worker thread and receive the result with a single line of code.  This can be a very useful helper function in any project that outsources processing to web workers.
+This code will allow us to trigger an operation on the web worker thread and receive the result in a promise.  This can be a very useful helper function in any project that outsources call/response processing to web workers.
 
 ## 4 - Key Exchange
 
@@ -681,7 +689,7 @@ socket.on('disconnect', () => {
 
 ### 4.1 - Generate Key Pair In Vue App
 
-Next, we'll replace the `created` function in `/public/page.js` to initialize the WebWorker and generate a new key pair.
+Next, we'll replace the `created` function in `/public/page.js` to initialize the web worker and generate a new key pair.
 
 ```javascript
 async created () {
@@ -701,7 +709,7 @@ async created () {
 ```
 <br>
 
-We are using the [async/await syntax](https://blog.patricktriest.com/what-is-async-await-why-should-you-care/) to receive the WebWorker promise result with a single line of code.
+We are using the [async/await syntax](https://blog.patricktriest.com/what-is-async-await-why-should-you-care/) to receive the web worker promise result with a single line of code.
 
 ### 4.2 - Add Public Key Helper Functions
 
@@ -760,7 +768,7 @@ this.socket.on('user disconnected', () => {
 
 Finally, we'll add some HTML to display the two public keys.
 
-Add the following to `/public/index.html`, directly below `<!-- Add Encryption Key UI Here -->`
+Add the following to `/public/index.html`, directly below the `<!-- Add Encryption Key UI Here -->` comment.
 
 ```html
 <div class="divider"></div>
@@ -872,7 +880,7 @@ Try restarting the server and reloading the page at `http://localhost:3000`.  Th
 ![Screenshot 5](https://cdn.patricktriest.com/blog/images/posts/e2e-chat/screenshot_5.png)
 ![Screenshot 6](https://cdn.patricktriest.com/blog/images/posts/e2e-chat/screenshot_6.png)
 
-If you check the command-line output you'll see that instead of being able to read the messages being sent between tabs, the output now displays garbled encrypted text.
+In command-line output, the messages are no longer readable - they now display as garbled encrypted text.
 
 ## 6 - Chatrooms
 
@@ -880,7 +888,7 @@ You may have noticed a massive flaw in the current app - if we open a third tab 
 
 This leaves us with two options -
 
-1. Encrypt and send a separate copy of the message to each user, if there are more than one.
+1. Encrypt and send a separate copy of the message to each user, if there is more than one.
 1. Restrict each chat room to only allow two users at a time.
 
 Since this tutorial is already quite long, we'll be going with second, simpler option.
@@ -1046,7 +1054,7 @@ There are lots of ways to build up the app from here:
 - Experiment with different encryption systems such as:
   - [**AES**](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard) - Symmetric encryption, with a shared secret between the users.  This is the only publicly available algorithm that is in use by the NSA and US Military.
   - [**ElGamal**](https://en.wikipedia.org/wiki/ElGamal_encryption) - Similar to RSA, but with smaller cyphertexts, faster decryption, and slower encryption.  This is the core algorithm that is used in [PGP](https://en.wikipedia.org/wiki/Pretty_Good_Privacy).
-  - Implement a [**Diffie-Helman**](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange) key exchange.  This is a technique of using asymmetric encryption (such as ElGamal) to exchange a shared secret, such as a symmetric encryption key (for AES).  Building this on top of our existing project, and exchanging a new shared secret before each message, is a good way to improve the security of the app (see [Perfect Forward Security](https://en.wikipedia.org/wiki/Forward_secrecy)).
+  - Implement a [**Diffie-Helman**](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange) key exchange.  This is a technique of using asymmetric encryption (such as ElGamal) to exchange a shared secret, such as a symmetric encryption key (for AES).  Building this on top of our existing project and exchanging a new shared secret before each message is a good way to improve the security of the app (see [Perfect Forward Security](https://en.wikipedia.org/wiki/Forward_secrecy)).
 - Build an app for virtually any use-case where intermediate servers should never have unencrypted access to the transmitted data, such as password-managers and P2P (peer-to-peer) networks.
 - Refactor the app for [React Native](https://facebook.github.io/react-native/), [Ionic](https://ionicframework.com/), [Cordova](https://cordova.apache.org/), or [Electron](https://electronjs.org/) in order to provide a secure pre-built application bundle for mobile and/or desktop environments.
 
