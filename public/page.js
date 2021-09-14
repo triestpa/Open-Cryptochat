@@ -47,6 +47,7 @@ const vm = new Vue ({
           // Decrypt the message text in the webworker thread
           message.text = await this.getWebWorkerResponse('decrypt', message.text)
           this.messages.push(message)
+          this.autoscroll(this.$refs.chatContainer)
         }
       })
 
@@ -187,6 +188,10 @@ const vm = new Vue ({
     /** Autoscoll DOM element to bottom */
     autoscroll (element) {
       if (element) { element.scrollTop = element.scrollHeight }
-    }
+    }, 
+    updated(){
+          let ele = document.getElementById('chatContainer');
+          ele.scrollTop = ele.scrollHeight;
+      }
   }
 })
